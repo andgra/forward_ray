@@ -1,4 +1,12 @@
 #include <iostream>
+#include <vector>
+#include <fstream>
+#include <algorithm>
+#include <set>
+#include <map>
+#include <list>
+#include <deque>
+#include <memory>
 
 using namespace std;
 
