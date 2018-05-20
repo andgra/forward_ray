@@ -7,15 +7,34 @@
 #include <list>
 #include <deque>
 #include <memory>
+//#include "data.h"
+//#include "algo.h"
+#include <unordered_map>
+#include "point.h"
 
 using namespace std;
 
-int main() {
+typedef std::unordered_map<int, double> Mymap;
+typedef std::unordered_map<pointD*, Mymap> Mymap1;
+int main(int argc, char* args[]) {
     try {
-//        MyData::OpenFile(args[1]);
+        Mymap temp;
+        temp.insert(Mymap::value_type(1,5.6));
+        Mymap1 temp1;
+        pointD p(2.3,0.7);
+        pointD p2(2.3,0.7);
+        temp1.insert(Mymap1::value_type((&p),temp));
+        bool ex = false;
+        for(auto ent1 : temp1) {
+            if(*(ent1.first) == p2) {
+                ex = true;
+                break;
+            }
+        }
+        int a = 1;
+//        algo::OpenFile(string(args[1]));
         try {
-//            MyData::MainAlgorithm();
-            throw string("534");
+//            data.MainAlgorithm();
         }
         catch (string &exp) {
             cout << "Error: " << exp << endl;
