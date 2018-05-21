@@ -10,7 +10,6 @@
 #include "arrayOfReceiversTransmitters.h"
 #include <sstream>  //for std::istringstream
 #include <iterator> //for std::istream_iterator
-#include <windows.h>
 #include <clocale>
 #include <omp.h>
 #include "beam.h"
