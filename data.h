@@ -21,7 +21,7 @@ string filePath;
 string fileDir;
 
 string getOutPath() {
-    return fileDir + "\\out\\";
+    return fileDir + "/out/";
 }
 
 figure background;
