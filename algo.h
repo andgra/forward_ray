@@ -7,23 +7,23 @@
 
 #include <iostream>
 #include <fstream>
-#include <vector>
-#include <string>
-#include "intersection.h"
-#include "beam.h"
 #include "arrayOfReceiversTransmitters.h"
-#include "data.h"
 #include <sstream>  //for std::istringstream
 #include <iterator> //for std::istream_iterator
-#include <queue>  // подключили библиотеку queue
 #include <windows.h>
 #include <clocale>
+#include <omp.h>
+#include "beam.h"
+#include "data.h"
+#include <queue>
+#include <string>
+#include <vector>
+#include <math.h>
 
 
 
 using std::string;
 using std::vector;
-using std::count;
 using std::stringstream;
 using std::getline;
 using std::ifstream;
@@ -156,15 +156,8 @@ public:
 
         vector<vec2d> directions = GenerateArrayOfVectors(30, 0.01);//0.0001);
 
-//        ParallelOptions options = new ParallelOptions();
-//        options.MaxDegreeOfParallelism = 7;
-
 #pragma omp parallel for
         for (int i = 0; i < cntCoord; i++) {
-
-
-//        Parallel.For(0, coordinatesOfTransmitters.Length, options, i = >
-//        {
             arrayOfReceiversTransmitters receivers = arrayOfReceiversTransmitters(coordinatesOfTransmitters, directions,
                                                                                   1, maxTime);//запускаем новую фиксацию
             queue<beam> calculationQueue = queue<beam>();

@@ -5,15 +5,18 @@
 #ifndef ARRAY_OF_RECEIVERS_TRANSMITTERS_H
 #define ARRAY_OF_RECEIVERS_TRANSMITTERS_H
 
-#include <vector>
+#include "point.h"
 #include "vec2.h"
 #include "beam.h"
+#include "edge.h"
+#include "figure.h"
 #include "intersection.h"
 #include "data.h"
 #include <complex>
 #include "dft.h"
 #include <unordered_map>
 #include <queue>
+#include <math.h>
 
 typedef complex<double> comp;
 

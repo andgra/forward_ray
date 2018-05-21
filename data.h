@@ -6,7 +6,6 @@
 #define DATA_H
 
 #include <iostream>
-#include <vector>
 #include <math.h>
 #include "figure.h"
 #include <algorithm>
