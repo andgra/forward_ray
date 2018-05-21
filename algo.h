@@ -86,6 +86,7 @@ public:
 
         int cntLines = lines.size();
 
+        cout << "dir: " << getOutPath() <<endl;
 #if defined(_WIN32)
         _mkdir(getOutPath().c_str());
 #else
