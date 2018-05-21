@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 #include <math.h>
-
+#include <direct.h>
 
 
 using std::string;
@@ -29,10 +29,19 @@ using std::ifstream;
 using std::istream_iterator;
 using std::to_string;
 using std::cout;
+using std::exception;
 
 string basePath( string const pathname )
 {
     return pathname.substr(pathname.find_last_of("/\\") + 1);
+}
+
+string dirnameOf(const string fname)
+{
+    size_t pos = fname.find_last_of("\\/");
+    return (string::npos == pos)
+           ? ""
+           : fname.substr(0, pos);
 }
 
 string fileNameWoExt( string const pathname )
@@ -57,16 +66,22 @@ vector<string> split(const string s, char delim)
 class algo {
 public:
     static void OpenFile(string path) {
+        filePath = path;
+        fileDir = dirnameOf(path);
         fileName = fileNameWoExt(path);
         vector<string> lines;
 
         ifstream file(path);
+        if(!file) {
+            throw string("file was not found");
+        }
         copy(istream_iterator<string>(file),
              istream_iterator<string>(),
              back_inserter(lines));
 
         int cntLines = lines.size();
 
+        _mkdir(getOutPath().c_str());
 
         auto size = split(lines[0], ';');//нулевая строка - размеры
         width = stoi(size[0]);
@@ -174,7 +189,7 @@ public:
                     try {
                         receivers.SendBeam(current, calculationQueue);
                     }
-                    catch (const std::exception& ex) {
+                    catch (const exception& ex) {
                         cout << "!" << ex.what();
                     }
                 }
@@ -183,13 +198,13 @@ public:
             }
             receivers.ProcessDifs();//Отрисовываем зафиксированные диф.
 
-            SaveData("L" + fileName + "(withoutAbs.data)"/* + "-" + to_string(i + 1)*/ + ".data" + to_string(i),
+            SaveData(getOutPath() + "L" + fileName + "(withoutAbs.data)"/* + "-" + to_string(i + 1)*/ + ".data" + to_string(i),
                      receivers.convolvedData(), coordinatesOfTransmitters.size());//записываем результаты данной фиксации
 
         }
 
 
-        SaveInfo("L" + fileName + "(withoutAbs.data)", maxTime, coordinatesOfTransmitters.size(), step);
+        SaveInfo(getOutPath() + "L" + fileName + "(withoutAbs.data)", maxTime, coordinatesOfTransmitters.size(), step);
         //SaveInfoInUniversalFormat("L3-0.5_2D-z80_150.data", maxTime, coordinatesOfTransmitters.Length, step);
         cout << "Finished";
     }

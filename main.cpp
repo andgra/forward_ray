@@ -6,7 +6,9 @@ using namespace std;
 
 int main(int argc, char* args[]) {
     try {
-//        throw string(args[1]);
+        if(args[1] == nullptr) {
+            throw string("parameter was not sent");
+        }
         algo::OpenFile(string(args[1]));
         try {
             algo::MainAlgorithm();

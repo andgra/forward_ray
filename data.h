@@ -17,6 +17,13 @@ using std::string;
 using std::vector;
 
 string fileName;
+string filePath;
+string fileDir;
+
+string getOutPath() {
+    return fileDir + ".\\out\\";
+}
+
 figure background;
 vector<figure> figureCollection;
 int width;
