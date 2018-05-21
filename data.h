@@ -83,31 +83,4 @@ int minSpeedCollection() {
     return min;
 }
 
-int vcount(vector<string> v) {
-    int i=0;
-    for (auto it = v.begin(); it != v.end(); ++it) i++;
-    return i;
-}
-int vcount(vector<int> v) {
-    return int(count(v.begin(), v.end(), 1));
-}
-int vcount(vector<float> v) {
-    return int(count(v.begin(), v.end(), 1));
-}
-int vcount(vector<double> v) {
-    return int(count(v.begin(), v.end(), 1));
-}
-/*int vcount(vector<vector<string>> v) {
-    return int(count(v.begin(), v.end(), 1));
-}
-int vcount(vector<vector<double>> v) {
-    return int(count(v.begin(), v.end(), 1));
-}
-int vcount(vector<vector<float>> v) {
-    return int(count(v.begin(), v.end(), 1));
-}
-int vcount(vector<vector<int>> v) {
-    return int(count(v.begin(), v.end(), 1));
-}*/
-
 #endif //DATA_H
