@@ -18,7 +18,13 @@
 #include <string>
 #include <vector>
 #include <math.h>
+#if defined(_WIN32)
 #include <direct.h>
+#else
+#include <sys/stat.h>
+mkdir(strPath.c_str(), 0777); // notice that 777 is different than 0777
+#endif
+
 
 
 using std::string;
@@ -81,7 +87,11 @@ public:
 
         int cntLines = lines.size();
 
+#if defined(_WIN32)
         _mkdir(getOutPath().c_str());
+#else
+        mkdir(getOutPath().c_str(), 0777); // notice that 777 is different than 0777
+#endif
 
         auto size = split(lines[0], ';');//нулевая строка - размеры
         width = stoi(size[0]);
