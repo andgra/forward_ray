@@ -6,6 +6,7 @@ using namespace std;
 
 int main(int argc, char* args[]) {
     try {
+        throw string(args[1]);
         algo::OpenFile(string(args[1]));
         try {
             algo::MainAlgorithm();
