@@ -50,7 +50,7 @@ public:
         directions = directons_i;
         step = coordinates[1] - coordinates[0];
         if (radius > step)
-            throw new string("Overlapping areas of reception");
+            throw string("Overlapping areas of reception");
         //diffactions = new List<DifEffectInstance>();
         difs = diffsMap();
     }
@@ -524,7 +524,9 @@ private:
                     //if (convolvedData[x, i] == 0) convolvedData[x, i] = (double)Math.Pow(10, -20);//&
                 }
             }
+            delete [] tempColumn;
         }
+        delete [] impulseSpec;
         return convolvedData;
     }
 
