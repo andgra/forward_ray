@@ -162,7 +162,6 @@ public:
              back_inserter(lines));
 
         int cntLines = lines.size();
-
         cout << "dir: " << getOutPath() <<endl;
         DeleteDirectory(getOutPath());
 #if defined(_WIN32)
@@ -250,6 +249,7 @@ public:
     }
 
     static void MainAlgorithm() {
+        cout << "threads: " << omp_get_max_threads() <<endl;
         int step = 2;//расстояние между датчиками
         vector<int> coordinatesOfTransmitters = vector<int>(width / step);
         int cntCoord = coordinatesOfTransmitters.size();
@@ -302,8 +302,13 @@ public:
                 std::cout << "time " << t << std::endl;
             receivers.ProcessDifs();//Отрисовываем зафиксированные диф.
 
-            SaveData(getOutPath() + "L" + fileName + "(withoutAbs.data)"/* + "-" + to_string(i + 1)*/ + ".data" + to_string(i),
-                     receivers.convolvedData(), coordinatesOfTransmitters.size());//записываем результаты данной фиксации
+            auto convolved = receivers.convolvedData();
+
+#pragma omp critical
+            {
+                SaveData(getOutPath() + "L" + fileName + "(withoutAbs.data)"/* + "-" + to_string(i + 1)*/ + ".data" + to_string(i),
+                         convolved, coordinatesOfTransmitters.size());//записываем результаты данной фиксации
+            }
 
         }
 
