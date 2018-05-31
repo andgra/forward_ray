@@ -259,7 +259,7 @@ public:
 
         vector<vec2d> directions = GenerateArrayOfVectors(30, 0.01);//0.0001);
 
-//#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
         for (int i = 0; i < cntCoord; i++) {
             arrayOfReceiversTransmitters receivers = arrayOfReceiversTransmitters(coordinatesOfTransmitters, directions,
                                                                                   1, maxTime);//запускаем новую фиксацию
@@ -267,7 +267,7 @@ public:
 //            int j = 0;
                 Timer tmr;
                 double t1 = tmr.elapsed();
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic)
             for (int j = 0; j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
             {
 //                std::cout << "thr " << j << std::endl;
