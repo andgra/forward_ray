@@ -40,30 +40,36 @@ public:
 
 
     arrayOfReceiversTransmitters(vector<int> coordinates_i, vector<vec2d> directons_i, int radius_i, int maxTime_i) {
-        coordinates = coordinates_i;
-        radius = radius_i;
-        maxTime = maxTime_i;
-        recordedData = vector<vector<double>>(coordinates.size());
-        for(int i = 0; i<coordinates.size(); i++) {
-            recordedData[i] = vector<double>(maxTime + 1);
+#pragma omp critical
+        {
+            coordinates = coordinates_i;
+            radius = radius_i;
+            maxTime = maxTime_i;
+            recordedData = vector<vector<double>>(coordinates.size());
+            for (int i = 0; i < coordinates.size(); i++) {
+                recordedData[i] = vector<double>(maxTime + 1);
+            }
+            directions = directons_i;
+            step = coordinates[1] - coordinates[0];
+            if (radius > step)
+                throw string("Overlapping areas of reception");
+            //diffactions = new List<DifEffectInstance>();
+            difs = diffsMap();
         }
-        directions = directons_i;
-        step = coordinates[1] - coordinates[0];
-        if (radius > step)
-            throw string("Overlapping areas of reception");
-        //diffactions = new List<DifEffectInstance>();
-        difs = diffsMap();
     }
 
     void CheckAndRecord(double x, int time, double value)//, bool dif)
     {
-        int pos = Check(x);
-        if (pos != -1)
-            if (fabs(float(recordedData[pos][time])) <
-                fabs(float(value)))//мы не должны суммировать сигналы лучей, пришедшие в один приемник в одно и то же время
-                recordedData[pos][time] = value;//просто берём самый сильный сигнал
-        //Debug.WriteLine(i + " " + time);
-
+#pragma omp critical
+        {
+            int pos = Check(x);
+            if (pos != -1)
+                if (fabs(float(recordedData[pos][time])) <
+                    fabs(float(
+                            value)))//мы не должны суммировать сигналы лучей, пришедшие в один приемник в одно и то же время
+                    recordedData[pos][time] = value;//просто берём самый сильный сигнал
+            //Debug.WriteLine(i + " " + time);
+        }
         return;//в два приемника одновременно попасть не можем
     }
 
@@ -87,9 +93,11 @@ public:
 
     void RecordDif(pointD p, double val, int prevTime, int fIndex)//, int fIndex)
     {
+#pragma omp critical
+        {
 //        Timer tmr;
 //        double t0 = tmr.elapsed();
-        auto strP = pointD::serialize(figureCollection[fIndex].GetNearestDifPoint(p));
+            auto strP = pointD::serialize(figureCollection[fIndex].GetNearestDifPoint(p));
 
 //        diffMap tempDif;
 //        if (!containsKey(difs, strP, tempDif))
@@ -105,30 +113,31 @@ public:
 //                difs[strP].insert(diffMap::value_type(prevTime, val));
 //            }
 //        }
-        bool existed = false;
-        bool existedDif = false;
-        for(auto it1 : difs) {
-            if(it1.first == strP) {
-                existed = true;
-                for(auto it2 : it1.second) {
-                    if(it2.first == prevTime) {
-                        if (it2.second < val)
-                            difs[it1.first][it2.first] = val;
-                        existedDif = true;
+            bool existed = false;
+            bool existedDif = false;
+            for (auto it1 : difs) {
+                if (it1.first == strP) {
+                    existed = true;
+                    for (auto it2 : it1.second) {
+                        if (it2.first == prevTime) {
+                            if (it2.second < val)
+                                difs[it1.first][it2.first] = val;
+                            existedDif = true;
 
-                        break;
+                            break;
+                        }
                     }
+                    if (!existedDif) {
+                        difs[it1.first].insert(diffMap::value_type(prevTime, val));
+                    }
+                    break;
                 }
-                if(!existedDif) {
-                    difs[it1.first].insert(diffMap::value_type(prevTime, val));
-                }
-                break;
             }
-        }
-        if (!existed) {
-            diffMap tempDif;
-            tempDif.insert(diffMap::value_type(prevTime, val));
-            difs.insert(diffsMap::value_type(strP, tempDif));
+            if (!existed) {
+                diffMap tempDif;
+                tempDif.insert(diffMap::value_type(prevTime, val));
+                difs.insert(diffsMap::value_type(strP, tempDif));
+            }
         }
 //        double t = tmr.elapsed() - t0;
 //        cout << "l " << t << endl;
@@ -595,7 +604,10 @@ private:
         double time = (double) (p.Y * dX / speed / dt) - delta + prevTime;
         if (time > maxTime)
             return;
-        recordedData[position][(int) round(time)] += val * curVal / 2;
+#pragma omp critical
+        {
+            recordedData[position][(int) round(time)] += val * curVal / 2;
+        }
         //Console.WriteLine(position + "," + (int)Math.Round(time));
 
         bool stop = false;
@@ -609,11 +621,17 @@ private:
             if (newTime > maxTime)
                 return;
             if (position + i < coordinates.size()) {
-                recordedData[position + i][(int) round(newTime)] += val * curVal / i;
+#pragma omp critical
+                {
+                    recordedData[position + i][(int) round(newTime)] += val * curVal / i;
+                }
                 stop = false;
             }
             if (position - i >= 0) {
-                recordedData[position - i][(int) round(newTime)] += val * curVal / i;
+#pragma omp critical
+                {
+                    recordedData[position - i][(int) round(newTime)] += val * curVal / i;
+                }
                 stop = false;
             }
         }
