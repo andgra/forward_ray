@@ -5,12 +5,12 @@
 #ifndef DATA_H
 #define DATA_H
 
+#include "helper.h"
 #include <iostream>
 #include <math.h>
 #include "figure.h"
 #include <algorithm>
 #include <string>
-
 
 using std::count;
 using std::string;

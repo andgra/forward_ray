@@ -1,10 +1,33 @@
 #include <iostream>
 #include <string>
 #include "algo.h"
+//#include "point.h"
+#include "helper.h"
+#include <unordered_map>
 
-using namespace std;
+using std::cout;
+using std::string;
+using std::endl;
+
+typedef unordered_map<int, string> mm;
 
 int main(int argc, char* args[]) {
+//    pointD p(43.7, 90);
+//    auto s = pointD::serialize(p);
+//    auto a = pointD::deserialize(s);
+//    auto s1 = pointD::serialize(a);
+//    auto b = s == s1;
+//    auto b1 = p == a;
+//    mm m;
+//    m.insert(mm::value_type(1,"asd"));
+////    auto it = m.find(2);
+//    string* s;
+//    for(auto it: m) {
+//        s = &(m[it.first]);
+//    }
+//    *s = "fsd";
+//    delete s;
+//    auto c = containsKey(m, 1, s);
     try {
         if(args[1] == nullptr) {
             throw string("parameter was not sent");

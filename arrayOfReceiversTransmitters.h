@@ -23,7 +23,7 @@ typedef complex<double> comp;
 using namespace std;
 
 typedef unordered_map<int, double> diffMap;
-typedef unordered_map<pointD*, diffMap> diffsMap;
+typedef unordered_map<string, diffMap> diffsMap;
 
 class arrayOfReceiversTransmitters {
 public:
@@ -87,11 +87,28 @@ public:
 
     void RecordDif(pointD p, double val, int prevTime, int fIndex)//, int fIndex)
     {
-        auto point = figureCollection[fIndex].GetNearestDifPoint(p);
+//        Timer tmr;
+//        double t0 = tmr.elapsed();
+        auto strP = pointD::serialize(figureCollection[fIndex].GetNearestDifPoint(p));
+
+//        diffMap tempDif;
+//        if (!containsKey(difs, strP, tempDif))
+//        {
+//            tempDif.insert(diffMap::value_type(prevTime, val));
+//            difs.insert(diffsMap::value_type(strP, tempDif));
+//        } else {
+//            double v;
+//            if (containsKey(tempDif, prevTime, v)) {
+//                if (v < val)
+//                    difs[strP][prevTime] = val;
+//            } else {
+//                difs[strP].insert(diffMap::value_type(prevTime, val));
+//            }
+//        }
         bool existed = false;
         bool existedDif = false;
         for(auto it1 : difs) {
-            if(*(it1.first) == point) {
+            if(it1.first == strP) {
                 existed = true;
                 for(auto it2 : it1.second) {
                     if(it2.first == prevTime) {
@@ -111,8 +128,10 @@ public:
         if (!existed) {
             diffMap tempDif;
             tempDif.insert(diffMap::value_type(prevTime, val));
-            difs.insert(diffsMap::value_type(&point, tempDif));
+            difs.insert(diffsMap::value_type(strP, tempDif));
         }
+//        double t = tmr.elapsed() - t0;
+//        cout << "l " << t << endl;
         //diffactions.Add(new DifEffectInstance(figureCollection[fIndex].GetNearestDifPoint(p), prevTime, val));//записываем точную точку диф, а не то, где сработал луч
     }
 
@@ -132,7 +151,7 @@ public:
 
         for(auto it1 : difs) {
             for(auto it2 : it1.second) {
-                DrawDif(*(it1.first), it2.second, it2.first);
+                DrawDif(pointD::deserialize(it1.first), it2.second, it2.first);
             }
         }
         /*for (auto iter = difs.begin(); iter != difs.end(); ++iter) {

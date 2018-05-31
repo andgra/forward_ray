@@ -143,17 +143,7 @@ system(("rm -r "+refcstrRootDirectory).c_str());
 }
 #endif
 
-vector<string> split(const string s, char delim)
-{
-    vector<string> elems;
-    stringstream ss(s);
-    string item;
-    while(getline(ss, item, delim))
-    {
-        elems.push_back(item);
-    }
-    return elems;
-}
+
 
 class algo {
 public:
@@ -269,32 +259,47 @@ public:
 
         vector<vec2d> directions = GenerateArrayOfVectors(30, 0.01);//0.0001);
 
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int i = 0; i < cntCoord; i++) {
             arrayOfReceiversTransmitters receivers = arrayOfReceiversTransmitters(coordinatesOfTransmitters, directions,
                                                                                   1, maxTime);//запускаем новую фиксацию
-            queue<beam> calculationQueue = queue<beam>();
-            beam current;
 
-            for (vec2d d: directions)//добавляем все направления расчёта луча из данной точки в очередь
+//            int j = 0;
+                Timer tmr;
+                double t1 = tmr.elapsed();
+#pragma omp parallel for
+            for (int j = 0; j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
             {
+//                std::cout << "thr " << j << std::endl;
+                vec2d d = directions[j];
+
+                queue<beam> calculationQueue = queue<beam>();
+                beam current;
+//                tmr.reset();
                 calculationQueue.push(beam(pointD(coordinatesOfTransmitters[i], 0), d, 0, 1, 0));
 
-                while (calculationQueue.size() != 0) {
+                while (!calculationQueue.empty()) {
                     current = calculationQueue.front();
                     calculationQueue.pop();
                     current.direction = vec2d::normalize(current.direction);
 
                     try {
+//                        Timer tmrb;
+//                        double tb0 = tmrb.elapsed();
                         receivers.SendBeam(current, calculationQueue);
+//                        double tb = tmrb.elapsed() - tb0;
+//                        if(tb != 0)
+//                        cout << "b " << tb << endl;
                     }
                     catch (const exception& ex) {
                         cout << "!" << ex.what();
                     }
                 }
-
-
+//                auto c = 1;
+//                j++;
             }
+                double t = tmr.elapsed() - t1;
+                std::cout << "time " << t << std::endl;
             receivers.ProcessDifs();//Отрисовываем зафиксированные диф.
 
             SaveData(getOutPath() + "L" + fileName + "(withoutAbs.data)"/* + "-" + to_string(i + 1)*/ + ".data" + to_string(i),

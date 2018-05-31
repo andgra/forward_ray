@@ -2,6 +2,7 @@
 #define __VEC2_H__
 
 #include <math.h>
+#include "helper.h"
 
 template <class T>
 class vec2 {
@@ -133,6 +134,20 @@ public:
     }
     static double cross(vec2 v1, vec2 v2) {
         return (v1.X * v2.Y) - (v1.Y * v2.X);
+    }
+
+    static string serialize(vec2 v) {
+        return "" + to_string(v.X) + ";" + to_string(v.Y);
+    }
+
+    static vec2 deserialize(string s) {
+        vector<string> coords = split(s, ';');
+        switch(str2int(typeid(T).name())) {
+            case str2int("d"): return vec2(stod(coords[0]),stod(coords[1]));
+            case str2int("f"): return vec2(stof(coords[0]),stof(coords[1]));
+            case str2int("i"): return vec2(stoi(coords[0]),stoi(coords[1]));
+            default: return vec2(0,0);
+        }
     }
 
 };

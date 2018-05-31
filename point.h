@@ -4,6 +4,8 @@
 
 #ifndef POINT_H
 #define POINT_H
+#include "helper.h"
+
 template<class T>
 class point
 {
@@ -32,6 +34,20 @@ public:
     bool operator > (const point & p_lhs) const
     {
         return !(this == p_lhs) && !(this < p_lhs);
+    }
+
+    static string serialize(point p) {
+        return "" + to_string(p.X) + ";" + to_string(p.Y);
+    }
+
+    static point deserialize(string s) {
+        vector<string> coords = split(s, ';');
+        switch(str2int(typeid(T).name())) {
+            case str2int("d"): return point(stod(coords[0]),stod(coords[1]));
+            case str2int("f"): return point(stof(coords[0]),stof(coords[1]));
+            case str2int("i"): return point(stoi(coords[0]),stoi(coords[1]));
+            default: return point(0,0);
+        }
     }
 };
 

@@ -9,7 +9,10 @@
 #include "edge.h"
 #include <limits>
 
-using namespace std;
+using std::vector;
+using std::numeric_limits;
+using std::min;
+using std::max;
 
 class figure//фигура задаётся набором отрезков
 {
@@ -26,17 +29,7 @@ public:
     int bottom;
     int up;
 
-
-    int edgesCount() {
-        int i=0;
-        for (auto it = edges.begin(); it != edges.end(); ++it) {
-            i++;
-        }
-        return i;
-    }
-
-    figure() {
-    }
+    figure() {}
 
     figure(vector<edge> edges_i, int speed_i, double density_i, double absorption_i, int index_i) {
         edges = edges_i;
@@ -80,7 +73,7 @@ public:
         if (point.X > right || point.X < left || point.Y > up || point.Y < bottom)
             return false;
 
-        int cnt = edgesCount();
+        int cnt = edges.size();
         int j = cnt - 1;
         for (int i = 0; i < cnt; i++) {
             if (edges[i].p2.Y < point.Y && edges[j].p2.Y >= point.Y ||
@@ -120,7 +113,7 @@ public:
         double minDist = numeric_limits<double>::max();
         double curDist;
         int index = -1;
-        for (int i = 0; i < edgesCount(); i++) {
+        for (int i = 0; i < edges.size(); i++) {
             curDist = GetDistance(point, pointD::conv(edges[i].p1));
             if (minDist > curDist) {
                 minDist = curDist;
