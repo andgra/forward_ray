@@ -250,27 +250,32 @@ public:
 
     static void MainAlgorithm() {
         cout << "threads: " << omp_get_max_threads() <<endl;
+//        omp_set_nested(1);
+        cout << "nested: " << omp_get_nested() <<endl;
         int step = 2;//расстояние между датчиками
         vector<int> coordinatesOfTransmitters = vector<int>(width / step);
         int cntCoord = coordinatesOfTransmitters.size();
         for (int i = 0; i < cntCoord; i++) {
             coordinatesOfTransmitters[i] = i * step;
         }
+        Timer mtmr;
+        double mt1 = mtmr.elapsed();
 
         vector<vec2d> directions = GenerateArrayOfVectors(30, 0.01);//0.0001);
 
-#pragma omp parallel for schedule(dynamic)
-        for (int i = 0; i < cntCoord; i++) {
-            arrayOfReceiversTransmitters receivers = arrayOfReceiversTransmitters(coordinatesOfTransmitters, directions,
-                                                                                  1, maxTime);//запускаем новую фиксацию
+#pragma omp parallel for schedule(dynamic) num_threads(3)
+        for (int i = 0; i < 20; i++) {
+            arrayOfReceiversTransmitters receivers = arrayOfReceiversTransmitters(coordinatesOfTransmitters, directions, 1, maxTime);//запускаем новую фиксацию
 
+            std::cout << "started " << i << std::endl;
+            cout << "threads: " << omp_get_num_threads() <<endl;
 //            int j = 0;
                 Timer tmr;
                 double t1 = tmr.elapsed();
-#pragma omp parallel for schedule(dynamic)
+//#pragma omp parallel for schedule(dynamic) num_threads(5)
             for (int j = 0; j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
             {
-//                std::cout << "thr " << j << std::endl;
+//                std::cout << "free " << omp_get_max_threads() - omp_get_num_threads() << std::endl;
                 vec2d d = directions[j];
 
                 queue<beam> calculationQueue = queue<beam>();
@@ -316,6 +321,8 @@ public:
         SaveInfo(getOutPath() + "L" + fileName + "(withoutAbs.data)", maxTime, coordinatesOfTransmitters.size(), step);
         //SaveInfoInUniversalFormat("L3-0.5_2D-z80_150.data", maxTime, coordinatesOfTransmitters.Length, step);
         cout << "Finished";
+        double mt = mtmr.elapsed() - mt1;
+        std::cout << "total time " << mt << std::endl;
     }
 
 private:
