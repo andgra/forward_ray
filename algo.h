@@ -20,14 +20,15 @@
 #include <math.h>
 
 #if defined(_WIN32)
+
 #include <direct.h>
 #include <windows.h>
 #include <conio.h>
+
 #else
 #include <sys/stat.h>
 #include <stdlib.h>
 #endif
-
 
 
 using std::string;
@@ -40,21 +41,18 @@ using std::to_string;
 using std::cout;
 using std::exception;
 
-string basePath( string const pathname )
-{
+string basePath(string const pathname) {
     return pathname.substr(pathname.find_last_of("/\\") + 1);
 }
 
-string dirnameOf(const string fname)
-{
+string dirnameOf(const string fname) {
     size_t pos = fname.find_last_of("\\/");
     return (string::npos == pos)
            ? ""
            : fname.substr(0, pos);
 }
 
-string fileNameWoExt( string const pathname )
-{
+string fileNameWoExt(string const pathname) {
     string fileName = basePath(pathname);
     string::size_type const p(fileName.find_last_of('.'));
     return fileName.substr(0, p);
@@ -62,71 +60,61 @@ string fileNameWoExt( string const pathname )
 
 
 #if defined(_WIN32)
+
 int DeleteDirectory(const std::string &refcstrRootDirectory,
-                    bool              bDeleteSubdirectories = true)
-{
-    bool            bSubdirectory = false;       // Flag, indicating whether
+                    bool bDeleteSubdirectories = true) {
+    bool bSubdirectory = false;       // Flag, indicating whether
     // subdirectories have been found
-    HANDLE          hFile;                       // Handle to directory
-    std::string     strFilePath;                 // Filepath
-    std::string     strPattern;                  // Pattern
+    HANDLE hFile;                       // Handle to directory
+    std::string strFilePath;                 // Filepath
+    std::string strPattern;                  // Pattern
     WIN32_FIND_DATA FileInformation;             // File information
 
 
     strPattern = refcstrRootDirectory + "\\*.*";
     hFile = ::FindFirstFile(strPattern.c_str(), &FileInformation);
-    if(hFile != INVALID_HANDLE_VALUE)
-    {
-        do
-        {
-            if(FileInformation.cFileName[0] != '.')
-            {
+    if (hFile != INVALID_HANDLE_VALUE) {
+        do {
+            if (FileInformation.cFileName[0] != '.') {
                 strFilePath.erase();
                 strFilePath = refcstrRootDirectory + "\\" + FileInformation.cFileName;
 
-                if(FileInformation.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-                {
-                    if(bDeleteSubdirectories)
-                    {
+                if (FileInformation.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                    if (bDeleteSubdirectories) {
                         // Delete subdirectory
                         int iRC = DeleteDirectory(strFilePath, bDeleteSubdirectories);
-                        if(iRC)
+                        if (iRC)
                             return iRC;
-                    }
-                    else
+                    } else
                         bSubdirectory = true;
-                }
-                else
-                {
+                } else {
                     // Set file attributes
-                    if(::SetFileAttributes(strFilePath.c_str(),
-                                           FILE_ATTRIBUTE_NORMAL) == FALSE)
+                    if (::SetFileAttributes(strFilePath.c_str(),
+                                            FILE_ATTRIBUTE_NORMAL) == FALSE)
                         return ::GetLastError();
 
                     // Delete file
-                    if(::DeleteFile(strFilePath.c_str()) == FALSE)
+                    if (::DeleteFile(strFilePath.c_str()) == FALSE)
                         return ::GetLastError();
                 }
             }
-        } while(::FindNextFile(hFile, &FileInformation) == TRUE);
+        } while (::FindNextFile(hFile, &FileInformation) == TRUE);
 
         // Close handle
         ::FindClose(hFile);
 
         DWORD dwError = ::GetLastError();
-        if(dwError != ERROR_NO_MORE_FILES)
+        if (dwError != ERROR_NO_MORE_FILES)
             return dwError;
-        else
-        {
-            if(!bSubdirectory)
-            {
+        else {
+            if (!bSubdirectory) {
                 // Set directory attributes
-                if(::SetFileAttributes(refcstrRootDirectory.c_str(),
-                                       FILE_ATTRIBUTE_NORMAL) == FALSE)
+                if (::SetFileAttributes(refcstrRootDirectory.c_str(),
+                                        FILE_ATTRIBUTE_NORMAL) == FALSE)
                     return ::GetLastError();
 
                 // Delete directory
-                if(::RemoveDirectory(refcstrRootDirectory.c_str()) == FALSE)
+                if (::RemoveDirectory(refcstrRootDirectory.c_str()) == FALSE)
                     return ::GetLastError();
             }
         }
@@ -134,6 +122,7 @@ int DeleteDirectory(const std::string &refcstrRootDirectory,
 
     return 0;
 }
+
 #else
 
 int DeleteDirectory(const std::string &refcstrRootDirectory)
@@ -142,7 +131,6 @@ int DeleteDirectory(const std::string &refcstrRootDirectory)
 system(("rm -r "+refcstrRootDirectory).c_str());
 }
 #endif
-
 
 
 class algo {
@@ -154,7 +142,7 @@ public:
         vector<string> lines;
 
         ifstream file(path);
-        if(!file) {
+        if (!file) {
             throw string("file was not found");
         }
         copy(istream_iterator<string>(file),
@@ -162,7 +150,7 @@ public:
              back_inserter(lines));
 
         int cntLines = lines.size();
-        cout << "dir: " << getOutPath() <<endl;
+        cout << "dir: " << getOutPath() << endl;
         DeleteDirectory(getOutPath());
 #if defined(_WIN32)
 //        _rmdir (getOutPath().c_str());
@@ -176,10 +164,11 @@ public:
         height = stoi(size[1]);
 
 
-        vector<string> bckgrnd = split(lines[1], ';');//первая строка - параметры фона(среды, не принадлежащей ни к одному из заданных объектов)
+        vector<string> bckgrnd = split(lines[1],
+                                       ';');//первая строка - параметры фона(среды, не принадлежащей ни к одному из заданных объектов)
 
         background = figure(vector<edge>{edge(pointI(0, 0), pointI(width - 1, 0), 0, 0),
-                                            edge(pointI(0, height - 1), pointI(width - 1, height - 1), 1, 0)},
+                                         edge(pointI(0, height - 1), pointI(width - 1, height - 1), 1, 0)},
                             stoi(bckgrnd[0]), stod(bckgrnd[1]), stod(bckgrnd[2]), 0);
         //background.edges.Add();//грань с приёмниками
         //background.edges.Add();//противоположная грань
@@ -241,17 +230,17 @@ public:
 
         for (int i = 3; i < size + 3; i += 2) {
             directions[i] = vec2d((double) cos((normal - (i - 2) * step) * degreeToRadians),
-                                        (double) sin((normal - (i - 2) * step) * degreeToRadians));
+                                  (double) sin((normal - (i - 2) * step) * degreeToRadians));
             directions[i + 1] = vec2d((double) cos((normal + (i - 2) * step) * degreeToRadians),
-                                            (double) sin((normal + (i - 2) * step) * degreeToRadians));
+                                      (double) sin((normal + (i - 2) * step) * degreeToRadians));
         }
         return directions;
     }
 
     static void MainAlgorithm() {
-        cout << "threads: " << omp_get_max_threads() <<endl;
+        cout << "threads: " << omp_get_max_threads() << endl;
         omp_set_nested(1);
-        cout << "nested: " << omp_get_nested() <<endl;
+        cout << "nested: " << omp_get_nested() << endl;
         int step = 2;//расстояние между датчиками
         vector<int> coordinatesOfTransmitters = vector<int>(width / step);
         int cntCoord = coordinatesOfTransmitters.size();
@@ -262,21 +251,24 @@ public:
         double mt1 = mtmr.elapsed();
 
         vector<vec2d> directions = GenerateArrayOfVectors(30, 0.01);//0.0001);
-                int done = 0;
 
-#pragma omp parallel for schedule(static)/* num_threads(omp_get_max_threads()/2)*/
+        int done = 0;
+#pragma omp parallel for schedule(dynamic, 3) num_threads(omp_get_max_threads()/2)
         for (int i = 0; i < cntCoord; i++) {
-            arrayOfReceiversTransmitters receivers = arrayOfReceiversTransmitters(coordinatesOfTransmitters, directions, 1, maxTime);//запускаем новую фиксацию
+            arrayOfReceiversTransmitters receivers = arrayOfReceiversTransmitters(coordinatesOfTransmitters, directions,
+                                                                                  1, maxTime);//запускаем новую фиксацию
 
             std::cout << "started " << i << std::endl;
-            cout << "threads: " << omp_get_num_threads() <<endl;
 //            int j = 0;
-                Timer tmr;
-                double t1 = tmr.elapsed();
-                int busy = min(cntCoord-1-done, omp_get_max_threads());
-            cout << "busy: " << busy <<endl;
-#pragma omp parallel for schedule(static) num_threads(omp_get_max_threads() - busy +1)
-            for (int j = 0; j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
+            Timer tmr;
+            double t1 = tmr.elapsed();
+            int busy = cntCoord - 2 - done;
+            int free = max(omp_get_max_threads()/2 / busy, 2);
+            cout << "busy: " << busy << endl;
+            cout << "free: " << free << endl;
+#pragma omp parallel for schedule(dynamic) num_threads(free)
+            for (int j = 0;
+                 j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
             {
 //                std::cout << "thr " << omp_get_num_threads() << std::endl;
                 vec2d d = directions[j];
@@ -299,22 +291,23 @@ public:
 //                        if(tb != 0)
 //                        cout << "b " << tb << endl;
                     }
-                    catch (const exception& ex) {
+                    catch (const exception &ex) {
                         cout << "!" << ex.what();
                     }
                 }
 //                auto c = 1;
 //                j++;
             }
-                double t = tmr.elapsed() - t1;
-                std::cout << "time " << t << std::endl;
+            double t = tmr.elapsed() - t1;
+            std::cout << "time " << t << std::endl;
             receivers.ProcessDifs();//Отрисовываем зафиксированные диф.
 
             auto convolved = receivers.convolvedData();
 
 #pragma omp critical
             {
-                SaveData(getOutPath() + "L" + fileName + "(withoutAbs.data)"/* + "-" + to_string(i + 1)*/ + ".data" + to_string(i),
+                SaveData(getOutPath() + "L" + fileName + "(withoutAbs.data)"/* + "-" + to_string(i + 1)*/ + ".data" +
+                         to_string(i),
                          convolved, coordinatesOfTransmitters.size());//записываем результаты данной фиксации
             }
             done++;
@@ -335,13 +328,13 @@ private:
         auto dxmm = 1000 * dX;
         auto dymm = 1000 * dY;
         auto df = (int) (1 / dt);
-        ofstream myFile (path + ".info", ios::out | ios::binary);
-        myFile.write(reinterpret_cast<char*>(&cnt),sizeof(cnt));
-        myFile.write(reinterpret_cast<char*>(&step),sizeof(step));
-        myFile.write(reinterpret_cast<char*>(&maxtime),sizeof(maxtime));
-        myFile.write(reinterpret_cast<char*>(&dxmm),sizeof(dxmm));
-        myFile.write(reinterpret_cast<char*>(&dymm),sizeof(dymm));
-        myFile.write(reinterpret_cast<char*>(&df),sizeof(df));
+        ofstream myFile(path + ".info", ios::out | ios::binary);
+        myFile.write(reinterpret_cast<char *>(&cnt), sizeof(cnt));
+        myFile.write(reinterpret_cast<char *>(&step), sizeof(step));
+        myFile.write(reinterpret_cast<char *>(&maxtime), sizeof(maxtime));
+        myFile.write(reinterpret_cast<char *>(&dxmm), sizeof(dxmm));
+        myFile.write(reinterpret_cast<char *>(&dymm), sizeof(dymm));
+        myFile.write(reinterpret_cast<char *>(&df), sizeof(df));
     }
 
     /*static void SaveInfoInUniversalFormat(string path, int maxtime, int cnt, int step) {
@@ -358,12 +351,12 @@ private:
         }
     }*/
 
-    static void SaveData(string path, vector<vector<double>> data, int cnt )//, int impulseLen)
+    static void SaveData(string path, vector<vector<double>> data, int cnt)//, int impulseLen)
     {
-        ofstream myFile (path, ios::out | ios::binary);
-        for(auto v: data) {
-            for(auto d: v) {
-                myFile.write(reinterpret_cast<char*>(&d),sizeof(d));
+        ofstream myFile(path, ios::out | ios::binary);
+        for (auto v: data) {
+            for (auto d: v) {
+                myFile.write(reinterpret_cast<char *>(&d), sizeof(d));
             }
         }
 

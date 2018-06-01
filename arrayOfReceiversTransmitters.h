@@ -93,12 +93,12 @@ public:
 
     void RecordDif(pointD p, double val, int prevTime, int fIndex)//, int fIndex)
     {
-#pragma omp critical
-        {
 //        Timer tmr;
 //        double t0 = tmr.elapsed();
             auto strP = pointD::serialize(figureCollection[fIndex].GetNearestDifPoint(p));
 
+#pragma omp critical
+        {
 //        diffMap tempDif;
 //        if (!containsKey(difs, strP, tempDif))
 //        {
