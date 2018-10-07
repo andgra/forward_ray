@@ -206,9 +206,9 @@ public:
 
             figureCollection.emplace_back(figure(figureEdges, speed, density, absorption_c, j - 1));
         }
-        //maxTime = (int)(dY * height / (figureCollection.Min(x => x.speed)) / dt * 2);
-        maxTime = (int) ((sqrt(pow(dY * height, 2) + pow(dX * width / 2, 2)) /
-                          minSpeedCollection() / dt * 2));
+        maxTime = (int)(dY * height / (minSpeedCollection()) / dt * 2);
+//        maxTime = (int) ((sqrt(pow(dY * height, 2) + pow(dX * width / 2, 2)) /
+//                          minSpeedCollection() / dt * 2));
     }
 
 
@@ -222,13 +222,13 @@ public:
         else
             size = (int) ((normal - treshold) / step);
 
-        vector<vec2d> directions = vector<vec2d>(size + 3);
+        vector<vec2d> directions = vector<vec2d>(size + 1);
 
         directions[0] = vec2d(0, 1);//всегда добавляется вертикальный вектор
         directions[1] = vec2d(1, 0);//и прямая волна
         directions[2] = vec2d(-1, 0);
 
-        for (int i = 3; i < size + 3; i += 2) {
+        for (int i = 3; i < size; i += 2) {
             directions[i] = vec2d((double) cos((normal - (i - 2) * step) * degreeToRadians),
                                   (double) sin((normal - (i - 2) * step) * degreeToRadians));
             directions[i + 1] = vec2d((double) cos((normal + (i - 2) * step) * degreeToRadians),
@@ -253,68 +253,77 @@ public:
         vector<vec2d> directions = GenerateArrayOfVectors(30, 0.01);//0.0001);
 
         int done = 0;
+        //не создавать разные варианты генерации с одним и тем же именем!
 #pragma omp parallel for schedule(dynamic, 3) num_threads(omp_get_max_threads()/2)
         for (int i = 0; i < cntCoord; i++) {
-            arrayOfReceiversTransmitters receivers = arrayOfReceiversTransmitters(coordinatesOfTransmitters, directions,
-                                                                                  1, maxTime);//запускаем новую фиксацию
-
-            std::cout << "started " << i << std::endl;
-//            int j = 0;
-            Timer tmr;
-            double t1 = tmr.elapsed();
-            int busy = cntCoord - 2 - done;
-            int free = max(omp_get_max_threads()/2 / busy, 2);
-            cout << "busy: " << busy << endl;
-            cout << "free: " << free << endl;
-#pragma omp parallel for schedule(dynamic) num_threads(free)
-            for (int j = 0;
-                 j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
+            //если файл с данным именем уже существует, мы считаем, что он создан раньше и уже посчитан
+            if (!ifstream("L" + fileName + ".data" + to_string(i)))
             {
+                arrayOfReceiversTransmitters receivers = arrayOfReceiversTransmitters(coordinatesOfTransmitters,
+                                                                                      directions,
+                                                                                      1,
+                                                                                      maxTime);//запускаем новую фиксацию
+
+                std::cout << "started " << i << std::endl;
+//            int j = 0;
+                Timer tmr;
+                double t1 = tmr.elapsed();
+                int busy = cntCoord - 2 - done;
+                int free = max(omp_get_max_threads() / 2 / busy, 2);
+                cout << "busy: " << busy << endl;
+                cout << "free: " << free << endl;
+#pragma omp parallel for schedule(dynamic) num_threads(free)
+                for (int j = 0;
+                     j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
+                {
 //                std::cout << "thr " << omp_get_num_threads() << std::endl;
-                vec2d d = directions[j];
+                    vec2d d = directions[j];
 
-                queue<beam> calculationQueue = queue<beam>();
-                beam current;
+                    queue<beam> calculationQueue = queue<beam>();
+                    beam current;
 //                tmr.reset();
-                calculationQueue.push(beam(pointD(coordinatesOfTransmitters[i], 0), d, 0, 1, 0));
+                    calculationQueue.push(beam(pointD(coordinatesOfTransmitters[i], 0), d, 0, 1, 0));
 
-                while (!calculationQueue.empty()) {
-                    current = calculationQueue.front();
-                    calculationQueue.pop();
-                    current.direction = vec2d::normalize(current.direction);
+                    while (!calculationQueue.empty()) {
+                        current = calculationQueue.front();
+                        calculationQueue.pop();
+                        current.direction = vec2d::normalize(current.direction);
 
-                    try {
+                        try {
 //                        Timer tmrb;
 //                        double tb0 = tmrb.elapsed();
-                        receivers.SendBeam(current, calculationQueue);
+                            receivers.SendBeam(current, calculationQueue);
 //                        double tb = tmrb.elapsed() - tb0;
 //                        if(tb != 0)
 //                        cout << "b " << tb << endl;
+                        }
+                        catch (const exception &ex) {
+                            cout << "!" << ex.what();
+                        }
                     }
-                    catch (const exception &ex) {
-                        cout << "!" << ex.what();
-                    }
-                }
 //                auto c = 1;
 //                j++;
-            }
-            double t = tmr.elapsed() - t1;
-            std::cout << "time " << t << std::endl;
-            receivers.ProcessDifs();//Отрисовываем зафиксированные диф.
+                }
+                double t = tmr.elapsed() - t1;
+                std::cout << "time " << t << std::endl;
+                receivers.ProcessDifs();//Отрисовываем зафиксированные диф.
 
-            auto convolved = receivers.convolvedData();
+                auto convolved = receivers.convolvedData();
 
 #pragma omp critical
-            {
-                SaveData(getOutPath() + "L" + fileName + "(withoutAbs.data)"/* + "-" + to_string(i + 1)*/ + ".data" +
-                         to_string(i),
-                         convolved, coordinatesOfTransmitters.size());//записываем результаты данной фиксации
+                {
+                    //записываем результаты данной фиксации
+                    SaveData(
+                            getOutPath() + "L" + fileName + ".data" + to_string(i),
+                            convolved, coordinatesOfTransmitters.size()
+                    );
+                }
             }
             done++;
         }
 
 
-        SaveInfo(getOutPath() + "L" + fileName + "(withoutAbs.data)", maxTime, coordinatesOfTransmitters.size(), step);
+        SaveInfo(getOutPath() + "L" + fileName + ".data", maxTime, coordinatesOfTransmitters.size(), step);
         //SaveInfoInUniversalFormat("L3-0.5_2D-z80_150.data", maxTime, coordinatesOfTransmitters.Length, step);
         cout << "Finished" << endl;
         double mt = mtmr.elapsed() - mt1;
@@ -353,6 +362,7 @@ private:
 
     static void SaveData(string path, vector<vector<double>> data, int cnt)//, int impulseLen)
     {
+        //SaveSpeedMap();
         ofstream myFile(path, ios::out | ios::binary);
         for (auto v: data) {
             for (auto d: v) {

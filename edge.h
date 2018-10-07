@@ -58,22 +58,42 @@ public:
     }
 
     bool ContainsPoint(pointD p) {
-        double t = 1E-03f;
-        // ensure points are collinear
-        auto zero = (p2.X - p1.X) * (p.Y - p1.Y) - (p.X - p1.X) * (p2.Y - p1.Y);
-        if (zero > t || zero < -t) return false;
+        //if (p.X > xEnd || p.X < xStart || p.Y > yEnd || p.Y < yStart)
+        //    return false;
+        //float t = 1E-03f;
+        //// ensure points are collinear
+        //var zero = (p2.X - p1.X) * (p.Y - p1.Y) - (p.X - p1.X) * (p2.Y - p1.Y);
+        //if (zero > t || zero < -t) return false;
 
-        // check if x-coordinates are not equal
-        if (p1.X - p2.X > t || p2.X - p1.X > t)
-            // ensure x is between a.x & b.x (use tolerance)
-            return p1.X > p2.X
-                   ? p.X + t > p2.X && p.X - t < p1.X
-                   : p.X + t > p1.X && p.X - t < p2.X;
+        //// check if x-coordinates are not equal
+        //if (p1.X - p2.X > t || p2.X - p1.X > t)
+        //    // ensure x is between a.x & b.x (use tolerance)
+        //    return p1.X > p2.X
+        //        ? p.X + t > p2.X && p.X - t < p1.X
+        //        : p.X + t > p1.X && p.X - t < p2.X;
 
-        // ensure y is between a.y & b.y (use tolerance)
-        return p1.Y > p2.Y
-               ? p.Y + t > p2.Y && p.Y - t < p1.Y
-               : p.Y + t > p1.Y && p.Y - t < p2.Y;
+        //// ensure y is between a.y & b.y (use tolerance)
+        //return p1.Y > p2.Y
+        //    ? p.Y + t > p2.Y && p.Y - t < p1.Y
+        //    : p.Y + t > p1.Y && p.Y - t < p2.Y;
+
+        double k, c;
+
+        if (p2.X == p1.X)
+        {
+            return (p.X == p1.X && p.Y >= std::min(p1.Y, p2.Y) && p.Y <= std::max(p1.Y, p2.Y));
+        }
+
+        k = ((double)(p2.Y - p1.Y)) / (p2.X - p1.X);
+
+        if (k == 0)
+        {
+            return (p.Y == p1.Y && p.X >= std::min(p1.X, p2.X) && p.X <= std::max(p1.X, p2.X));
+        }
+
+        c = p1.Y - k * p1.X;
+
+        return p.Y == p.X * k + c;
     }
 };
 

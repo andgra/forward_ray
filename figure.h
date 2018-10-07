@@ -8,6 +8,7 @@
 #include <vector>
 #include "edge.h"
 #include <limits>
+#include "point.h"
 
 using std::vector;
 using std::numeric_limits;
@@ -28,6 +29,16 @@ public:
     int right;
     int bottom;
     int up;
+    double area;
+
+    vector<pointI> points()
+    {
+        auto res = vector<pointI>(edges.size());
+        for(edge e: edges) {
+            res.push_back(e.p1);
+        }
+        return /*Array.ConvertAll<Point, PointF>(*/res; //, (p=>(PointF)p));
+    }
 
     figure() {}
 
@@ -54,19 +65,10 @@ public:
             if(curRight > right) right = curRight;
             if(curTop > up) up = curTop;
         }
+        area = GetArea();
     }
 
-    double GetArea()//площадь полигона
-    {
-        double sum = 0;
-        for(edge e: edges)
-        {
-            sum += double((e.p2.X - e.p1.X) * (e.p2.Y + e.p1.Y)) / 2;
-        }
-        return fabs(sum);
-    }
-
-    bool ContainsPoint(pointD point) {
+    bool ContainsPoint(pointD point) { //bottleneck
         bool result = false;
         if (index == 0)
             return true;
@@ -130,6 +132,16 @@ private:
         double difX = p2.X - p1.X;
         double difY = p2.Y - p1.Y;
         return sqrt(difX * difX + difY * difY);
+    }
+
+    double GetArea()//площадь полигона
+    {
+        double sum = 0;
+        for(edge e: edges)
+        {
+            sum += double((e.p2.X - e.p1.X) * (e.p2.Y + e.p1.Y)) / 2;
+        }
+        return fabs(sum);
     }
 };
 

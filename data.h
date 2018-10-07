@@ -37,10 +37,22 @@ double EPS = 1e-9;//значение, близкое к нулю
 double degreeToRadians = M_PI / 180;//константа для перевода из градусов в радианы и обратно
 
 
-double GetAbsorption(double coef, double distance)//рассчитываем поглощение
+double GetAbsorption(double coef, double distance) //рассчитываем поглощение
 {
-    //return (double)pow(exp(1), -coef * distance * dX * 100);//коэффициент в см^(-1), а расстояние в м
-    return 1;//временно отключаем поглощение
+    return (double) pow(exp(1), -coef * distance * dX * 100); //коэффициент в см^(-1), а расстояние в м
+    //return 1;//временно отключаем поглощение
+}
+
+void SaveSpeedMap()
+{
+//    Bitmap bmp = new Bitmap(width, height);
+//    using (Graphics g = Graphics.FromImage(bmp))
+//    {
+//        g.FillPolygon(new SolidBrush(Color.Black), figureCollection[1].points);
+//        g.FillPolygon(new SolidBrush(Color.Blue), figureCollection[2].points);
+//        g.FillPolygon(new SolidBrush(Color.Red), figureCollection[3].points);
+//        bmp.Save("111.png", System.Drawing.Imaging.ImageFormat.Png);
+//    }
 }
 
 bool isPointDif(pointD p, int figureIndex) {
@@ -60,7 +72,7 @@ int InWhichSmallestFigureIsPoint(pointD point) {
     int figureIndex = -1;
     for(figure f: figureCollection)
     {
-        curArea = f.GetArea();
+        curArea = f.area;
         if (f.ContainsPoint(point) && curArea < area) {
             figureIndex = f.index;
             area = curArea;
