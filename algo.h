@@ -206,7 +206,7 @@ public:
 
             figureCollection.emplace_back(figure(figureEdges, speed, density, absorption_c, j - 1));
         }
-        maxTime = (int)(dY * height / (minSpeedCollection()) / dt * 2);
+        maxTime = (int)(dY * height / minSpeedCollection() / dt * 2);
 //        maxTime = (int) ((sqrt(pow(dY * height, 2) + pow(dX * width / 2, 2)) /
 //                          minSpeedCollection() / dt * 2));
     }
@@ -238,6 +238,7 @@ public:
     }
 
     static void MainAlgorithm() {
+        int hlf_thr = omp_get_max_threads() / 2;
         cout << "threads: " << omp_get_max_threads() << endl;
         omp_set_nested(1);
         cout << "nested: " << omp_get_nested() << endl;
@@ -254,7 +255,7 @@ public:
 
         int done = 0;
         //не создавать разные варианты генерации с одним и тем же именем!
-#pragma omp parallel for schedule(dynamic, 3) num_threads(omp_get_max_threads()/2)
+//#pragma omp parallel for schedule(dynamic, 3) num_threads(hlf_thr)
         for (int i = 0; i < cntCoord; i++) {
             //если файл с данным именем уже существует, мы считаем, что он создан раньше и уже посчитан
             if (!ifstream("L" + fileName + ".data" + to_string(i)))
@@ -268,11 +269,12 @@ public:
 //            int j = 0;
                 Timer tmr;
                 double t1 = tmr.elapsed();
-                int busy = cntCoord - 2 - done;
-                int free = max(omp_get_max_threads() / 2 / busy, 2);
-                cout << "busy: " << busy << endl;
-                cout << "free: " << free << endl;
-#pragma omp parallel for schedule(dynamic) num_threads(free)
+                int remains = cntCoord - 2 - done;
+                cout << "busy: " << remains << endl;
+                remains = remains < 1 ? 1 : remains;
+                int free = max(hlf_thr / remains, 2);
+                cout << "free threads: " << free << endl;
+//#pragma omp parallel for schedule(dynamic) num_threads(free)
                 for (int j = 0;
                      j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
                 {
@@ -314,8 +316,8 @@ public:
                 {
                     //записываем результаты данной фиксации
                     SaveData(
-                            getOutPath() + "L" + fileName + ".data" + to_string(i),
-                            convolved, coordinatesOfTransmitters.size()
+                        getOutPath() + "L" + fileName + ".data" + to_string(i),
+                        convolved, coordinatesOfTransmitters.size()
                     );
                 }
             }
@@ -334,9 +336,9 @@ private:
 
     static void SaveInfo(string path, int maxtime, int cnt, int step)//, int impulseLen)
     {
-        auto dxmm = 1000 * dX;
-        auto dymm = 1000 * dY;
-        auto df = (int) (1 / dt);
+        float dxmm = 1000 * dX;
+        float dymm = 1000 * dY;
+        float df = (int) (1 / dt);
         ofstream myFile(path + ".info", ios::out | ios::binary);
         myFile.write(reinterpret_cast<char *>(&cnt), sizeof(cnt));
         myFile.write(reinterpret_cast<char *>(&step), sizeof(step));
@@ -344,6 +346,8 @@ private:
         myFile.write(reinterpret_cast<char *>(&dxmm), sizeof(dxmm));
         myFile.write(reinterpret_cast<char *>(&dymm), sizeof(dymm));
         myFile.write(reinterpret_cast<char *>(&df), sizeof(df));
+
+        cout << basePath(path + ".info") << " saved;" << endl;
     }
 
     /*static void SaveInfoInUniversalFormat(string path, int maxtime, int cnt, int step) {
@@ -366,7 +370,8 @@ private:
         ofstream myFile(path, ios::out | ios::binary);
         for (auto v: data) {
             for (auto d: v) {
-                myFile.write(reinterpret_cast<char *>(&d), sizeof(d));
+                float f = d;
+                myFile.write(reinterpret_cast<char *>(&f), sizeof(f));
             }
         }
 

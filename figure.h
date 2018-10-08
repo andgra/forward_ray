@@ -80,9 +80,8 @@ public:
         for (int i = 0; i < cnt; i++) {
             if (edges[i].p2.Y < point.Y && edges[j].p2.Y >= point.Y ||
                 edges[j].p2.Y < point.Y && edges[i].p2.Y >= point.Y) {
-                if (edges[i].p2.X +
-                    (point.Y - edges[i].p2.Y) / (edges[j].p2.Y - edges[i].p2.Y) * (edges[j].p2.X - edges[i].p2.X) <=
-                    point.X) {
+                double k = edges[j].p2.Y - edges[i].p2.Y == 0 ? 0 : (point.Y - edges[i].p2.Y) / (edges[j].p2.Y - edges[i].p2.Y);
+                if (edges[i].p2.X + k * (edges[j].p2.X - edges[i].p2.X) <= point.X) {
                     result = !result;
                 }
             }

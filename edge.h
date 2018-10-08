@@ -84,7 +84,7 @@ public:
             return (p.X == p1.X && p.Y >= std::min(p1.Y, p2.Y) && p.Y <= std::max(p1.Y, p2.Y));
         }
 
-        k = ((double)(p2.Y - p1.Y)) / (p2.X - p1.X);
+        k = p2.X - p1.X == 0 ? 0 : ((double)(p2.Y - p1.Y)) / (p2.X - p1.X);
 
         if (k == 0)
         {
