@@ -212,8 +212,8 @@ public:
     }
 
 
-    static vector<vec2d> GenerateArrayOfVectors(int treshold, double step, bool onlyUp = false) {
-        vector<vec2d> temp;
+    static vector<vec2f> GenerateArrayOfVectors(int treshold, double step, bool onlyUp = false) {
+        vector<vec2f> temp;
         double normal = 90;
         int size;
 
@@ -222,17 +222,17 @@ public:
         else
             size = (int) ((normal - treshold) / step);
 
-        vector<vec2d> directions = vector<vec2d>(size + 1);
+        vector<vec2f> directions = vector<vec2f>(size + 1);
 
-        directions[0] = vec2d(0, 1);//всегда добавляется вертикальный вектор
-        directions[1] = vec2d(1, 0);//и прямая волна
-        directions[2] = vec2d(-1, 0);
+        directions[0] = vec2f(0, 1);//всегда добавляется вертикальный вектор
+        directions[1] = vec2f(1, 0);//и прямая волна
+        directions[2] = vec2f(-1, 0);
 
         for (int i = 3; i < size; i += 2) {
-            directions[i] = vec2d((double) cos((normal - (i - 2) * step) * degreeToRadians),
-                                  (double) sin((normal - (i - 2) * step) * degreeToRadians));
-            directions[i + 1] = vec2d((double) cos((normal + (i - 2) * step) * degreeToRadians),
-                                      (double) sin((normal + (i - 2) * step) * degreeToRadians));
+            directions[i] = vec2f((float) cos((normal - (i - 2) * step) * degreeToRadians),
+                                  (float) sin((normal - (i - 2) * step) * degreeToRadians));
+            directions[i + 1] = vec2f((float) cos((normal + (i - 2) * step) * degreeToRadians),
+                                      (float) sin((normal + (i - 2) * step) * degreeToRadians));
         }
         return directions;
     }
@@ -251,7 +251,7 @@ public:
         Timer mtmr;
         double mt1 = mtmr.elapsed();
 
-        vector<vec2d> directions = GenerateArrayOfVectors(30, 0.01);//0.0001);
+        vector<vec2f> directions = GenerateArrayOfVectors(30, 0.01);//0.0001);
 
         int done = 0;
         //не создавать разные варианты генерации с одним и тем же именем!
@@ -279,17 +279,17 @@ public:
                      j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
                 {
 //                std::cout << "thr " << omp_get_num_threads() << std::endl;
-                    vec2d d = directions[j];
+                    vec2f d = directions[j];
 
                     queue<beam> calculationQueue = queue<beam>();
                     beam current;
 //                tmr.reset();
-                    calculationQueue.push(beam(pointD(coordinatesOfTransmitters[i], 0), d, 0, 1, 0));
+                    calculationQueue.push(beam(pointF(coordinatesOfTransmitters[i], 0), d, 0, 1, 0));
 
                     while (!calculationQueue.empty()) {
                         current = calculationQueue.front();
                         calculationQueue.pop();
-                        current.direction = vec2d::normalize(current.direction);
+                        current.direction = vec2f::normalize(current.direction);
 
                         try {
 //                        Timer tmrb;
@@ -364,13 +364,12 @@ private:
         }
     }*/
 
-    static void SaveData(string path, vector<vector<double>> data, int cnt)//, int impulseLen)
+    static void SaveData(string path, vector<vector<float>> data, int cnt)//, int impulseLen)
     {
         //SaveSpeedMap();
         ofstream myFile(path, ios::out | ios::binary);
         for (auto v: data) {
-            for (auto d: v) {
-                float f = d;
+            for (auto f: v) {
                 myFile.write(reinterpret_cast<char *>(&f), sizeof(f));
             }
         }

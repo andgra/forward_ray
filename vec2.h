@@ -123,7 +123,7 @@ public:
         return vec2(Y, -X);
     }
 
-    static double dot(vec2 v1, vec2 v2) {
+    static T dot(vec2 v1, vec2 v2) {
         return v1.X * v2.X + v1.Y * v2.Y;
     }
     static vec2 normalize(vec2 v) {

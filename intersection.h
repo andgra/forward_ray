@@ -11,25 +11,25 @@
 
 class intersection {
 public:
-    pointD intersectionPoint;//точка пересечения
+    pointF intersectionPoint;//точка пересечения
     double angle;//угол падения на грань к нормали
-    vec2d direction;
+    vec2f direction;
     int figureIndex;//номер фигуры, к которой относится граница, в которую попал луч
     int edgeIndex;//номер фигуры, к которой относится граница, в которую попал луч
     double distance;
     double existed;
 
-    vec2d normalVector;
+    vec2f normalVector;
 
     intersection() { existed = false; }
 
-    intersection(pointD point, vec2d direction, int fIndex, int eIndex, vec2d normal, double distance) {
+    intersection(pointF point, vec2f direction, int fIndex, int eIndex, vec2f normal, double distance) {
         intersectionPoint = point;
         this->direction = direction;
         this->figureIndex = fIndex;
         this->edgeIndex = eIndex;
         this->normalVector = normal;
-        this->angle = acos(vec2d::dot(direction, normalVector) / (direction.length())) /
+        this->angle = acos(vec2f::dot(direction, normalVector) / (direction.length())) /
                      degreeToRadians;// * normalVector.length()));//длина нормального вектора всегда 1
         this->distance = distance;
 

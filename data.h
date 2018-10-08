@@ -37,9 +37,9 @@ double EPS = 1e-9;//значение, близкое к нулю
 double degreeToRadians = M_PI / 180;//константа для перевода из градусов в радианы и обратно
 
 
-double GetAbsorption(double coef, double distance) //рассчитываем поглощение
+float GetAbsorption(double coef, double distance) //рассчитываем поглощение
 {
-    return (double) pow(exp(1), -coef * distance * dX * 100); //коэффициент в см^(-1), а расстояние в м
+    return (float) pow(exp(1), -coef * distance * dX * 100); //коэффициент в см^(-1), а расстояние в м
     //return 1;//временно отключаем поглощение
 }
 
@@ -55,7 +55,7 @@ void SaveSpeedMap()
 //    }
 }
 
-bool isPointDif(pointD p, int figureIndex) {
+bool isPointDif(pointF p, int figureIndex) {
     for(edge e: figureCollection[figureIndex].edges)
     {
         if (((round(e.xStart - p.X) == 0 && round(e.yStart - p.Y) == 0) ||
@@ -66,7 +66,7 @@ bool isPointDif(pointD p, int figureIndex) {
     return false;
 }
 
-int InWhichSmallestFigureIsPoint(pointD point) {
+int InWhichSmallestFigureIsPoint(pointF point) {
     double area = numeric_limits<double>::max();
     double curArea;
     int figureIndex = -1;
@@ -81,15 +81,15 @@ int InWhichSmallestFigureIsPoint(pointD point) {
     return figureIndex;
 }
 
-int GetNextFigure(pointD p, vec2d dir, int coef = 1)//при 1-ном коэф.смотрим на 0,5 мм
+int GetNextFigure(pointF p, vec2f dir, int coef = 1)//при 1-ном коэф.смотрим на 0,5 мм
 {
-    dir = vec2d::normalize(dir);
-    return InWhichSmallestFigureIsPoint(pointD(p.X + dir.X * coef, p.Y + dir.Y * coef));
+    dir = vec2f::normalize(dir);
+    return InWhichSmallestFigureIsPoint(pointF(p.X + dir.X * coef, p.Y + dir.Y * coef));
 }
 
-int GetNextFigure(pointD p) {
-    auto dir = vec2d(0, -1);
-    return InWhichSmallestFigureIsPoint(pointD(p.X + dir.X, p.Y + dir.Y));
+int GetNextFigure(pointF p) {
+    auto dir = vec2f(0, -1);
+    return InWhichSmallestFigureIsPoint(pointF(p.X + dir.X, p.Y + dir.Y));
 }
 
 int minSpeedCollection() {

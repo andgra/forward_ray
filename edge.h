@@ -8,6 +8,8 @@
 #include "vec2.h"
 #include "point.h"
 
+using std::min;
+using std::max;
 
 class edge {
 public:
@@ -15,16 +17,16 @@ public:
     pointI pEnd;//конец отрезка
     int edgeIndex;//номер грани
     int figureIndex;//номер фигуры
-    double xStart, xEnd, yStart, yEnd;
+    int xStart, xEnd, yStart, yEnd;
 
     pointI p1;//на всякий случай, чтобы ничего не сломать. Разберусь - исправлю
     pointI p2;
 
     int A, B, C;//коэффициенты уравнения прямой
 
-    vec2d vector() const{return vec2d::normalize(vec2d(p2.X - p1.X, p2.Y - p1.Y));}
-    vec2d vectorOrdered() const{return vec2d::normalize(vec2d(xEnd - xStart, yEnd - yStart));}
-    vec2d normalVector() const{return vec2d::normalize(vec2d(A, B));}
+    vec2f vector() const{return vec2f::normalize(vec2f(p2.X - p1.X, p2.Y - p1.Y));}
+    vec2f vectorOrdered() const{return vec2f::normalize(vec2f(xEnd - xStart, yEnd - yStart));}
+    vec2f normalVector() const{return vec2f::normalize(vec2f(A, B));}
 
     edge(pointI _p1, pointI _p2, int eindex, int findex) {
         this->p1 = _p1;
@@ -51,13 +53,13 @@ public:
         }
         xStart = pStart.X;
         xEnd = pEnd.X;
-        yStart = fmin(p1.Y, p2.Y);
-        yEnd = fmax(p1.Y, p2.Y);
+        yStart = min(p1.Y, p2.Y);
+        yEnd = max(p1.Y, p2.Y);
         this->edgeIndex = eindex;
         this->figureIndex = findex;
     }
 
-    bool ContainsPoint(pointD p) {
+    bool ContainsPoint(pointF p) {
         //if (p.X > xEnd || p.X < xStart || p.Y > yEnd || p.Y < yStart)
         //    return false;
         //float t = 1E-03f;
@@ -81,14 +83,14 @@ public:
 
         if (p2.X == p1.X)
         {
-            return (p.X == p1.X && p.Y >= std::min(p1.Y, p2.Y) && p.Y <= std::max(p1.Y, p2.Y));
+            return (p.X == p1.X && p.Y >= min(p1.Y, p2.Y) && p.Y <= max(p1.Y, p2.Y));
         }
 
         k = p2.X - p1.X == 0 ? 0 : ((double)(p2.Y - p1.Y)) / (p2.X - p1.X);
 
         if (k == 0)
         {
-            return (p.Y == p1.Y && p.X >= std::min(p1.X, p2.X) && p.X <= std::max(p1.X, p2.X));
+            return (p.Y == p1.Y && p.X >= min(p1.X, p2.X) && p.X <= max(p1.X, p2.X));
         }
 
         c = p1.Y - k * p1.X;

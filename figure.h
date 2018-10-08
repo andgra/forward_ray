@@ -68,7 +68,7 @@ public:
         area = GetArea();
     }
 
-    bool ContainsPoint(pointD point) { //bottleneck
+    bool ContainsPoint(pointF point) { //bottleneck
         bool result = false;
         if (index == 0)
             return true;
@@ -80,7 +80,7 @@ public:
         for (int i = 0; i < cnt; i++) {
             if (edges[i].p2.Y < point.Y && edges[j].p2.Y >= point.Y ||
                 edges[j].p2.Y < point.Y && edges[i].p2.Y >= point.Y) {
-                double k = edges[j].p2.Y - edges[i].p2.Y == 0 ? 0 : (point.Y - edges[i].p2.Y) / (edges[j].p2.Y - edges[i].p2.Y);
+                float k = edges[j].p2.Y - edges[i].p2.Y == 0 ? 0 : (point.Y - edges[i].p2.Y) / (edges[j].p2.Y - edges[i].p2.Y);
                 if (edges[i].p2.X + k * (edges[j].p2.X - edges[i].p2.X) <= point.X) {
                     result = !result;
                 }
@@ -101,35 +101,35 @@ public:
 
     double radius = 0.5;
 
-    bool IsPointDif(pointD point) {
+    bool IsPointDif(pointF point) {
         for(edge e: edges)
         {
-            if (GetDistance(point, pointD::conv(e.p1)) < radius)
+            if (GetDistance(point, pointF::conv(e.p1)) < radius)
                 return true;
         }
         return false;
     }
 
-    pointD GetNearestDifPoint(pointD point) {
+    pointF GetNearestDifPoint(pointF point) {
         double minDist = numeric_limits<double>::max();
         double curDist;
         int index = -1;
         for (int i = 0; i < edges.size(); i++) {
-            curDist = GetDistance(point, pointD::conv(edges[i].p1));
+            curDist = GetDistance(point, pointF::conv(edges[i].p1));
             if (minDist > curDist) {
                 minDist = curDist;
                 index = i;
             }
         }
-        return pointD::conv(edges[index].p1);
+        return pointF::conv(edges[index].p1);
     }
 
 private:
     bool _isItDifObjest;
 
-    double GetDistance(pointD p1, pointD p2) {
-        double difX = p2.X - p1.X;
-        double difY = p2.Y - p1.Y;
+    double GetDistance(pointF p1, pointF p2) {
+        float difX = p2.X - p1.X;
+        float difY = p2.Y - p1.Y;
         return sqrt(difX * difX + difY * difY);
     }
 

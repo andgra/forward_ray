@@ -22,32 +22,32 @@ typedef complex<double> comp;
 
 using namespace std;
 
-typedef unordered_map<int, double> diffMap;
+typedef unordered_map<int, float> diffMap;
 typedef unordered_map<string, diffMap> diffsMap;
 
 class arrayOfReceiversTransmitters {
 public:
     vector<int> coordinates;//список координат приёмников
     int radius;//радиус луча, т.е. насколько близкое к приемнику попадание засчитывается
-    vector<vector<double>> recordedData;
+    vector<vector<float>> recordedData;
 
-    vector<vector<double>> convolvedData() {
+    vector<vector<float>> convolvedData() {
         return MakeConvolution();
     }
 
     int maxTime;
-    vector<vec2d> directions;//список направлений лучей, посылаемых из каждого приемника
+    vector<vec2f> directions;//список направлений лучей, посылаемых из каждого приемника
 
 
-    arrayOfReceiversTransmitters(vector<int> coordinates_i, vector<vec2d> directons_i, int radius_i, int maxTime_i) {
+    arrayOfReceiversTransmitters(vector<int> coordinates_i, vector<vec2f> directons_i, int radius_i, int maxTime_i) {
 #pragma omp critical
         {
             coordinates = coordinates_i;
             radius = radius_i;
             maxTime = maxTime_i;
-            recordedData = vector<vector<double>>(coordinates.size());
+            recordedData = vector<vector<float>>(coordinates.size());
             for (int i = 0; i < coordinates.size(); i++) {
-                recordedData[i] = vector<double>(maxTime + 1);
+                recordedData[i] = vector<float>(maxTime + 1);
             }
             directions = directons_i;
             step = coordinates[1] - coordinates[0];
@@ -58,14 +58,14 @@ public:
         }
     }
 
-    void CheckAndRecord(double x, int time, double value)//, bool dif)
+    void CheckAndRecord(float x, int time, float value)//, bool dif)
     {
 #pragma omp critical
         {
             int pos = Check(x);
             if (pos != -1) {
                 //мы не должны суммировать сигналы лучей, пришедшие в один приемник в одно и то же время
-                if (fabs(float(recordedData[pos][time])) < fabs(float(value))) {
+                if (fabs(recordedData[pos][time]) < fabs(value)) {
                     recordedData[pos][time] = value;//просто берём самый сильный сигнал
                 }
                 //Debug.WriteLine(i + " " + time);
@@ -74,7 +74,7 @@ public:
         return;//в два приемника одновременно попасть не можем
     }
 
-    int Next(double x)//следующий от этой точки вправо приемник
+    int Next(float x)//следующий от этой точки вправо приемник
     {
         int sourceIndex = Check(x);
         if (sourceIndex + 1 < coordinates.size())
@@ -83,7 +83,7 @@ public:
             return -1;
     }
 
-    int Previous(double x)//следующий от этой точки влево приемник
+    int Previous(float x)//следующий от этой точки влево приемник
     {
         int sourceIndex = Check(x);
         if (sourceIndex - 1 >= 0)
@@ -92,11 +92,11 @@ public:
             return -1;
     }
 
-    void RecordDif(pointD p, double val, int prevTime, int fIndex)//, int fIndex)
+    void RecordDif(pointF p, float val, int prevTime, int fIndex)//, int fIndex)
     {
 //        Timer tmr;
 //        double t0 = tmr.elapsed();
-            auto strP = pointD::serialize(figureCollection[fIndex].GetNearestDifPoint(p));
+            auto strP = pointF::serialize(figureCollection[fIndex].GetNearestDifPoint(p));
 
 #pragma omp critical
         {
@@ -161,11 +161,11 @@ public:
 
         for(auto it1 : difs) {
             for(auto it2 : it1.second) {
-                DrawDif(pointD::deserialize(it1.first), it2.second, it2.first);
+                DrawDif(pointF::deserialize(it1.first), it2.second, it2.first);
             }
         }
         /*for (auto iter = difs.begin(); iter != difs.end(); ++iter) {
-            pointD p = iter->first;
+            pointF p = iter->first;
             auto difsP = iter->second;
             for (auto iter2 = difsP.begin(); iter2 != difsP.end(); ++iter2) {
                 int time = iter2->first;
@@ -186,16 +186,16 @@ public:
                 nextReceiverCoord = this->Previous(curBeam.startPoint.X);
             }
             if (nextReceiverCoord != -1)//если дошли до края, то дальше луч ни с чем не пересекается
-                closestIntersection = intersection(pointD(nextReceiverCoord, 0), curBeam.direction,
-                                                   curBeam.figureIndex, 0, vec2d(0, 1),
+                closestIntersection = intersection(pointF(nextReceiverCoord, 0), curBeam.direction,
+                                                   curBeam.figureIndex, 0, vec2f(0, 1),
                                                    GetDistance(curBeam.startPoint,
-                                                               pointD(nextReceiverCoord, 0)));//проверить!
+                                                               pointF(nextReceiverCoord, 0)));//проверить!
         } else {
             double closestIntersectionDistance = numeric_limits<double>::max();
 
-            double A = curBeam.startPoint.Y - (curBeam.startPoint.Y + curBeam.direction.Y);
-            double B = (curBeam.direction.X + curBeam.startPoint.X) - curBeam.startPoint.X;
-            double C = curBeam.startPoint.X * (curBeam.startPoint.Y + curBeam.direction.Y) -
+            float A = curBeam.startPoint.Y - (curBeam.startPoint.Y + curBeam.direction.Y);
+            float B = (curBeam.direction.X + curBeam.startPoint.X) - curBeam.startPoint.X;
+            float C = curBeam.startPoint.X * (curBeam.startPoint.Y + curBeam.direction.Y) -
                        (curBeam.direction.X + curBeam.startPoint.X) * curBeam.startPoint.Y;
 
             double currentDistance;
@@ -207,8 +207,8 @@ public:
                     double zn = det(l.A, l.B, A, B);
                     if (fabs(zn) < EPS) continue;//прямые не пересекаются
 
-                    double x = (-det(l.C, l.B, C, B) / zn);
-                    double y = (-det(l.A, l.C, A, C) / zn);//нашли точку пересечения
+                    float x = (float)(-det(l.C, l.B, C, B) / zn);
+                    float y = (float)(-det(l.A, l.C, A, C) / zn);//нашли точку пересечения
                     //если мы рассматриваем ту самую границу, на которой находимся, она нам не интересна
                     if (l.ContainsPoint(curBeam.startPoint))
 //                    if (IsPointOnEdge(curBeam.startPoint, l))
@@ -219,14 +219,14 @@ public:
                         //проверяем, с нужной ли стороны луча получилось пересечение
                         if ((curBeam.direction.X * (x - curBeam.startPoint.X) >= 0) &&
                             (curBeam.direction.Y * (y - curBeam.startPoint.Y) >= 0)) {
-                            currentDistance = GetDistance(pointD(x, y), curBeam.startPoint);
+                            currentDistance = GetDistance(pointF(x, y), curBeam.startPoint);
                             if (currentDistance < closestIntersectionDistance) {
-                                vec2d dir = curBeam.direction;
-                                int fIndex = InWhichSmallestFigureIsPoint(pointD(x + dir.X, y + dir.Y));
+                                vec2f dir = curBeam.direction;
+                                int fIndex = InWhichSmallestFigureIsPoint(pointF(x + dir.X, y + dir.Y));
                                 if (excludingTouches && (((fIndex == curBeam.figureIndex) && (f.index != 0)) ||
                                                          f.isItDifObject())) { ;// Console.WriteLine(x + ", " + y + " - касание из " + curBeam.startPoint.X + ", " + curBeam.startPoint.Y);
                                 } else {
-                                    closestIntersection = intersection(pointD(x, y), curBeam.direction,
+                                    closestIntersection = intersection(pointF(x, y), curBeam.direction,
                                                                        l.figureIndex, l.edgeIndex, l.normalVector(),
                                                                        currentDistance);
                                     closestIntersectionDistance = currentDistance;
@@ -240,8 +240,8 @@ public:
         return closestIntersection;
     }
 
-    double GetDistance(pointD a, pointD b) {
-        return sqrt(pow(a.X - b.X, 2) * pow(dX, 2) + pow(a.Y - b.Y, 2) * pow(dY, 2)) / dX;
+    double GetDistance(pointF a, pointF b) {
+        return sqrt((long double)((a.X - b.X) * (a.X - b.X) * dX * dX + (a.Y - b.Y) * (a.Y - b.Y) * dY * dY)) / dX;
     }
 
     double det(double a, double b, double c, double d) {
@@ -251,8 +251,8 @@ public:
     void SendBeam(beam curBeam, queue <beam>& calculationQueue)//луч - начальная точка, угол, амплитуда
     {
         double distance;
-        double time;
-        double abs;
+        float time;
+        float abs;
 
         if (fabs(curBeam.value) < EPS)//луч слишком угас, дальше не рассматриваем
             return;
@@ -263,12 +263,12 @@ public:
             return;//ничего не нашлось
         }
 
-        double val;
+        float val;
 
         if (closestIntersection.figureIndex == 0)//это не фигура, а один из концов пространства
         {
             distance = closestIntersection.distance;
-            time = (double) (curBeam.time + ((distance * dX / figureCollection[curBeam.figureIndex].speed) / dt));
+            time = (float) (curBeam.time + ((distance * dX / figureCollection[curBeam.figureIndex].speed) / dt));
             if (time > maxTime)
                 return;//луч превысил отведенное время, дальше не рассматриваем
 
@@ -281,24 +281,24 @@ public:
                 CheckAndRecord(closestIntersection.intersectionPoint.X, (int) round(time), val);
                 if (curBeam.direction.Y != 0)
                     calculationQueue.push(beam(curBeam, closestIntersection.intersectionPoint,
-                                               vec2d::reflect(curBeam.direction, vec2d(0, 1)), time, -val, 0));
+                                               vec2f::reflect(curBeam.direction, vec2f(0, 1)), time, -val, 0));
                 else
                     calculationQueue.push(beam(curBeam, closestIntersection.intersectionPoint,
-                                               vec2d::reflect(curBeam.direction, vec2d(0, 1)), time, val,
+                                               vec2f::reflect(curBeam.direction, vec2f(0, 1)), time, val,
                                                0));//для горизонтальной волны не должен меняться знак - там нет отражений
             } else//попали в противоположную сторону. Отражение без преломления.
             {
                 calculationQueue.push(beam(curBeam, closestIntersection.intersectionPoint,
-                                           vec2d::reflect(curBeam.direction, vec2d(0, -1)), time, -val, 0));
+                                           vec2f::reflect(curBeam.direction, vec2f(0, -1)), time, -val, 0));
             }
             return;
         }
 
 
-        vec2d dir = curBeam.direction;
+        vec2f dir = curBeam.direction;
 
         distance = closestIntersection.distance;
-        time = curBeam.time + (double) ((distance * dX / figureCollection[curBeam.figureIndex].speed) / dt);
+        time = curBeam.time + (float) ((distance * dX / figureCollection[curBeam.figureIndex].speed) / dt);
         if (time > maxTime)
             return;//луч превысил отведенное время, дальше не рассматриваем
         abs = GetAbsorption(figureCollection[curBeam.figureIndex].absorption_c, distance);
@@ -337,7 +337,7 @@ public:
         }
 
         bool difP = false;
-        vec2d reflectionDir = vec2d::reflect(closestIntersection.direction, closestIntersection.normalVector);
+        vec2f reflectionDir = vec2f::reflect(closestIntersection.direction, closestIntersection.normalVector);
         sourceFigureIndex = GetNextFigure(closestIntersection.intersectionPoint, reflectionDir);
         if (curBeam.figureIndex != sourceFigureIndex) {
             //Debug.WriteLine("Аномалия отражения в точке " + Math.Round(closestIntersection.intersectionPoint.X) + ", " + Math.Round(closestIntersection.intersectionPoint.Y));
@@ -352,8 +352,8 @@ public:
                     beam(curBeam, closestIntersection.intersectionPoint, reflectionDir, time, val,
                          sourceFigureIndex));
             //Console.WriteLine("полное внутреннее отражение");
-        } else if ((v1 <= v2) && (closestIntersection.angle >= asin((double) v1 / v2) /
-                                                               degreeToRadians))//проходящая волна скользит по поверхности вместо прохождения насквозь - мы не считаем эту волну
+        } else if ((v1 <= v2) && (closestIntersection.angle >= asin((double) v1 / v2) / degreeToRadians)
+            )//проходящая волна скользит по поверхности вместо прохождения насквозь - мы не считаем эту волну
         {
             double cosReflectionAngle = cos(closestIntersection.angle * degreeToRadians);
             rcoef = (figureCollection[targetFigureIndex].gamma / cosReflectionAngle -
@@ -364,11 +364,11 @@ public:
                                        (double) (curBeam.value * rcoef) * abs, sourceFigureIndex));
             //Console.WriteLine("закритический угол " + closestIntersection.angle + " при критическом " + Math.Asin((double)v1 / v2) / degreeToRadians);
         } else {
-            double temp = vec2d::dot(curBeam.direction * v1, closestIntersection.normalVector);
+            float temp = vec2f::dot(curBeam.direction * v1, closestIntersection.normalVector);
 
-            double k = (double) (sqrt((v2 * v2 - v1 * v1) / (temp * temp) + 1) - 1);
+            float k = (float) (sqrt((v2 * v2 - v1 * v1) / (temp * temp) + 1) - 1);
 
-            vec2d refractionDir = curBeam.direction * v1 + closestIntersection.normalVector * temp * k;
+            vec2f refractionDir = curBeam.direction * v1 + closestIntersection.normalVector * temp * k;
 
             targetFigureIndex = GetNextFigure(closestIntersection.intersectionPoint,
                                               refractionDir);//поздновато, но если мы выяснили, что дальше всё не так, как мы считали, это самое ранее, где мы можем поправить итог
@@ -396,9 +396,9 @@ public:
             }
 
             calculationQueue.push(beam(curBeam, closestIntersection.intersectionPoint, reflectionDir, time,
-                                       (double) (curBeam.value * rcoef) * abs, sourceFigureIndex));
+                                       (float) (curBeam.value * rcoef) * abs, sourceFigureIndex));
             calculationQueue.push(beam(curBeam, closestIntersection.intersectionPoint, refractionDir, time,
-                                       (double) (curBeam.value * pcoef) * abs, targetFigureIndex));
+                                       (float) (curBeam.value * pcoef) * abs, targetFigureIndex));
         }
     }
 
@@ -407,7 +407,7 @@ private:
 //private double[] signal = { 0.0f, 0.049901336421413582f, 0.012533323356430454f, -0.12769734259472953f, -0.0323296853314312f, 0.12363734711836992f, 0.058899928429548734f, -0.14477232839456303f, -0.086715661338308936f, 0.16042230584538295f, 0.13519060802726859f, -0.19262831069394754f, -0.20536413177860582f, 0.61609239533582116f, 0.7319875806369972f, -0.58778525229247813f, -0.84432792550201252f, 0.48175367410171815f, 0.90482705246601725f, -0.33131209741621637f, -0.808398038850879f, 0.14921393229891752f, 0.49114362536434342f, -0.025066646712862559f, -0.29940801852848131f, 0.0000000000000025482654181230304f, 0.29940801852848165f, 0.037599970069288363f, -0.19645745014573834f, -0.024868988716484131f, 0.19021130325903149f, 0.036812455268466777f };
 //private double[] signal = { 0f, 0.01154333f, 0.02304818f, 0.03447618f, 0.04578925f, 0.05694965f, 0.06792018f, 0.07866427f, 0.08914609f, 0.09933069f, 0.1091841f, 0.1186735f, 0.1277673f, 0.1364351f, 0.144648f, 0.1523787f, 0.1596013f, 0.1662918f, 0.1724279f, 0.1779892f, 0.182957f, 0.1873148f, 0.1910482f, 0.1941445f, 0.1965936f, 0.1983873f, 0.1995195f, 0.1999866f, 0.1997869f, 0.1989211f, 0.1973921f, 0.195205f, 0.1923671f, 0.1888878f, 0.1847788f, 0.1800537f, 0.1747284f, 0.1688205f, 0.1623497f, 0.1553377f, 0.1478078f, 0.1397851f, 0.1312963f, 0.1223698f, 0.1130353f, 0.103324f, 0.09326819f, 0.08290142f, 0.07225826f, 0.06137419f, 0.0502855f, 0.03902915f, 0.02764269f, 0.01616407f, 0.00463155f, -0.007105037f, -0.0194472f, -0.03235147f, -0.04577045f, -0.05965291f, -0.07394405f, -0.08858567f, -0.1035164f, -0.118672f, -0.1339855f, -0.1493877f, -0.1648072f, -0.1801708f, -0.1954039f, -0.2104307f, -0.2251749f, -0.2395592f, -0.2535067f, -0.2669406f, -0.2797845f, -0.2919632f, -0.3034028f, -0.314031f, -0.3237776f, -0.3325747f, -0.3403572f, -0.3470632f, -0.3526339f, -0.3570144f, -0.3601539f, -0.3620057f, -0.3625278f, -0.361683f, -0.3594393f, -0.3557697f, -0.3506531f, -0.344074f, -0.3360224f, -0.3264948f, -0.3154936f, -0.3030272f, -0.2891104f, -0.2737646f, -0.257017f, -0.2389015f, -0.2194581f, -0.1987329f, -0.1767784f, -0.1536529f, -0.1294204f, -0.1041509f, -0.07791957f, -0.05080708f, -0.02289898f, 0.005714433f, 0.03520138f, 0.06563723f, 0.09691449f, 0.1289193f, 0.1615318f, 0.1946269f, 0.2280741f, 0.2617388f, 0.2954821f, 0.3291618f, 0.3626329f, 0.395748f, 0.428358f, 0.4603131f, 0.4914628f, 0.5216569f, 0.550746f, 0.5785827f, 0.6050213f, 0.6299194f, 0.6531378f, 0.6745418f, 0.6940014f, 0.711392f, 0.7265953f, 0.7394994f, 0.75f, 0.7580002f, 0.7634116f, 0.7661549f, 0.7661598f, 0.7633657f, 0.7577223f, 0.7491899f, 0.7377395f, 0.7233532f, 0.7060245f, 0.6857586f, 0.6625723f, 0.6364943f, 0.6075652f, 0.5758376f, 0.541376f, 0.5042565f, 0.4645673f, 0.4224078f, 0.3778889f, 0.3311324f, 0.282271f, 0.2314475f, 0.1788149f, 0.1245355f, 0.06878076f, 0.01173044f, -0.04575089f, -0.1024507f, -0.1581827f, -0.2127659f, -0.2660252f, -0.3177919f, -0.3679044f, -0.4162085f, -0.4625582f, -0.5068156f, -0.5488517f, -0.5885467f, -0.6257905f, -0.6604825f, -0.6925323f, -0.7218598f, -0.7483954f, -0.7720798f, -0.7928648f, -0.8107126f, -0.8255965f, -0.8375003f, -0.8464185f, -0.8523564f, -0.8553296f, -0.855364f, -0.8524956f, -0.8467703f, -0.8382437f, -0.8269802f, -0.8130537f, -0.7965463f, -0.7775484f, -0.7561581f, -0.7324808f, -0.7066289f, -0.678721f, -0.6488816f, -0.6172405f, -0.5839324f, -0.5490962f, -0.5128743f, -0.4754126f, -0.4368594f, -0.3973649f, -0.3570809f, -0.3161598f, -0.2747546f, -0.2330177f, -0.191101f, -0.1491545f, -0.1073269f, -0.06576395f, -0.02460869f, 0.01599937f, 0.05551623f, 0.09363686f, 0.1302418f, 0.1652208f, 0.1984727f, 0.2299064f, 0.2594404f, 0.2870035f, 0.3125347f, 0.3359834f, 0.3573093f, 0.3764825f, 0.3934838f, 0.4083039f, 0.4209439f, 0.4314148f, 0.4397374f, 0.4459422f, 0.4500687f, 0.4521653f, 0.4522891f, 0.4505053f, 0.4468866f, 0.4415132f, 0.4344718f, 0.4258555f, 0.415763f, 0.4042981f, 0.391569f, 0.377688f, 0.3627708f, 0.3469356f, 0.3303029f, 0.3129944f, 0.2951329f, 0.2768413f, 0.258242f };
 
-    vector<double> signal = {0.0000000e+00f, 2.4705567e-05f, 2.0080991e-04f, 6.7034760e-04f, 1.5285072e-03f, 2.7887512e-03f,
+    vector<float> signal = {0.0000000e+00f, 2.4705567e-05f, 2.0080991e-04f, 6.7034760e-04f, 1.5285072e-03f, 2.7887512e-03f,
                        4.3621813e-03f, 6.0582370e-03f, 7.6099872e-03f, 8.9451009e-03f, 1.0357220e-02f, 1.1854203e-02f,
                        1.3434635e-02f, 1.5096378e-02f, 1.6836528e-02f, 1.8651363e-02f, 2.0536290e-02f, 2.2485809e-02f,
                        2.4493465e-02f, 2.6551804e-02f, 2.8652346e-02f, 3.0785553e-02f, 3.2940805e-02f, 3.5106368e-02f,
@@ -494,12 +494,13 @@ private:
 
     diffsMap difs;
 
-    int Check(double x)//находим, в зону приёма какого приёмнка попадает луч, попавший в точку x
+    int Check(float x)//находим, в зону приёма какого приёмнка попадает луч, попавший в точку x
     {
         for (int i = 0; i < coordinates.size(); i++)//для каждого элемента
         {
-            if ((x >= coordinates[i] - radius) && (x <= coordinates[i] +
-                                                        radius))//длина площадки сенсора radius*2+1, при 0 засчитывается только прямое попадание
+            if ((x >= coordinates[i] - radius) &&
+                (x <= coordinates[i] + radius)
+            )//длина площадки сенсора radius*2+1, при 0 засчитывается только прямое попадание
             {
                 return i;
             }
@@ -507,10 +508,10 @@ private:
         return -1;
     }
 
-    vector<vector<double>> MakeConvolution() {
-        auto convolvedData = vector<vector<double>>(coordinates.size())/*new double[coordinates.Length, ]*/;
+    vector<vector<float>> MakeConvolution() {
+        auto convolvedData = vector<vector<float>>(coordinates.size())/*new double[coordinates.Length, ]*/;
         for(int i = 0; i<coordinates.size(); i++) {
-            convolvedData[i] = vector<double>(maxTime + 1);
+            convolvedData[i] = vector<float>(maxTime + 1);
         }
 
         comp* tempColumn;
@@ -531,7 +532,7 @@ private:
             for (int i = 0; i <= maxTime; i++)//обрезаем то, что вылезло за границы
             {
                 if (i < 4096) {
-                    convolvedData[x][i] = tempColumn[i].real() / 4096;
+                    convolvedData[x][i] = (float) tempColumn[i].real() / 4096;
                     //Math.Sqrt(tempColumn[i].Re * tempColumn[i].Re + tempColumn[i].Im * tempColumn[i].Im) / 4096;//(4096 * 4096);
                 }else {
                     convolvedData[x][i] = 0;
@@ -553,25 +554,25 @@ private:
         inverse_fourier_transform(tempColumn, 4096);
     }
 
-    void DrawDif(pointD p, double val, double prevTime) {
+    void DrawDif(pointF p, float val, float prevTime) {
         int fIndex = GetNextFigure(p);//получаем скорость среды, по которой сигнал пойдёт вниз!
         int speed = figureCollection[fIndex].speed;
 
         int position = Check(p.X);
 
 
-        double curTime = 0;
-        double curVal = 1;
+        float curTime = 0;
+        float curVal = 1;
         int curFigureIndex = 0;
-        vec2d vUp = vec2d(0, 1);
+        vec2f vUp = vec2f(0, 1);
 
         //делаем хитрый ход, считаем луч не сверху вниз, а снизу вверх - разницы нет, а это поможет избежать громоздкого механизма
 
-        beam curBeam = beam(pointD(p.X, 0), vUp, 0, 1, 0);//исходный луч
+        beam curBeam = beam(pointF(p.X, 0), vUp, 0, 1, 0);//исходный луч
         intersection intersection = FindClosestIntersection(curBeam, false);//отправили луч с приёмника
 
         while (intersection.intersectionPoint.Y <= p.Y) {
-            curTime = (double) ((intersection.distance * dX / figureCollection[curBeam.figureIndex].speed) / dt);//считаем время отрезка
+            curTime = (float) ((intersection.distance * dX / figureCollection[curBeam.figureIndex].speed) / dt);//считаем время отрезка
             curVal = GetAbsorption(figureCollection[curBeam.figureIndex].absorption_c,
                                         intersection.distance);//считаем поглощение отрезка
             curFigureIndex = GetNextFigure(intersection.intersectionPoint, vUp);
@@ -584,10 +585,9 @@ private:
         curTime = curBeam.time;
         curVal = curBeam.value;
 
-        double delta = (double) (p.Y * dX / speed / dt -
-                                 curTime);//разность между расчетным и реальным временем
+        float delta = (float) (p.Y * dX / speed / dt - curTime);//разность между расчетным и реальным временем
 
-        double time = curTime + prevTime;
+        float time = curTime + prevTime;
         if (time > maxTime)
             return;
 #pragma omp critical
@@ -598,12 +598,11 @@ private:
 
         bool stop = false;
 
-        double newTime;
+        float newTime;
 
         for (int i = 1; stop != true; i++) {
             stop = true;
-            newTime = (double) ((sqrt(step * step * i * i + p.Y * p.Y) * dX / speed) / dt) - delta +
-                      prevTime;
+            newTime = (float) ((sqrt(step * step * i * i + p.Y * p.Y) * dX / speed) / dt) - delta + prevTime;
             if (newTime > maxTime)
                 return;
             if (position + i < coordinates.size()) {
