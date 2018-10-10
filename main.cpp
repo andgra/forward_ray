@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include "algo.h"
-//#include "point.h"
+#include "point.h"
 #include "helper.h"
 #include <unordered_map>
 
@@ -12,7 +12,10 @@ using std::endl;
 typedef unordered_map<int, string> mm;
 
 int main(int argc, char* args[]) {
-//    pointD p(43.7, 90);
+//    pointI p(100, 30);
+//
+//    auto p1 = pointF::conv(p);
+//    int a = 1;
 //    auto s = pointD::serialize(p);
 //    auto a = pointD::deserialize(s);
 //    auto s1 = pointD::serialize(a);

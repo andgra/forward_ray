@@ -12,13 +12,19 @@
 #include "figure.h"
 #include "intersection.h"
 #include "data.h"
-#include <complex>
-#include "dft.h"
+//#include <complex>
+//#include "dft.h"
+#include "fft.h"
 #include <unordered_map>
 #include <queue>
 #include <math.h>
+//#include <opencv2/opencv.hpp>
+//#include <opencv2/imgproc/imgproc.hpp>
+//#include <opencv2/highgui/highgui.hpp>
+//
+//using namespace cv;
 
-typedef complex<double> comp;
+//typedef complex<double> comp;
 
 using namespace std;
 
@@ -143,6 +149,7 @@ public:
 //        double t = tmr.elapsed() - t0;
 //        cout << "l " << t << endl;
         //diffactions.Add(new DifEffectInstance(figureCollection[fIndex].GetNearestDifPoint(p), prevTime, val));//записываем точную точку диф, а не то, где сработал луч
+        int a = 1;
     }
 
     void ProcessDifs() {
@@ -241,7 +248,7 @@ public:
     }
 
     double GetDistance(pointF a, pointF b) {
-        return sqrt((long double)((a.X - b.X) * (a.X - b.X) * dX * dX + (a.Y - b.Y) * (a.Y - b.Y) * dY * dY)) / dX;
+        return sqrt((a.X - b.X) * (a.X - b.X) * dX * dX + (a.Y - b.Y) * (a.Y - b.Y) * dY * dY) / dX;
     }
 
     double det(double a, double b, double c, double d) {
@@ -513,26 +520,25 @@ private:
         for(int i = 0; i<coordinates.size(); i++) {
             convolvedData[i] = vector<float>(maxTime + 1);
         }
-
-        comp* tempColumn;
-        auto impulseSpec = new comp[4096];
+        complex* tempColumn;
+        auto impulseSpec = new complex[4096];
         for (int i = 0; i < signal.size(); i++) {
             //if (i < impulse.Length)
-            impulseSpec[i].real(signal[i]);
+            impulseSpec[i] = signal[i];
         }
 
-        fourier_transform(impulseSpec, 4096);
+        CFFT::Forward(impulseSpec, 4096);
         for (int x = 0; x < width / step; x++) {
-            tempColumn = new comp[4096];
+            tempColumn = new complex[4096];
             for (int i = 0; i < min(4096, maxTime); i++) {
-                tempColumn[i].real(recordedData[x][i]);
+                tempColumn[i] = recordedData[x][i];
             }
             Convolution(tempColumn, impulseSpec);
 
             for (int i = 0; i <= maxTime; i++)//обрезаем то, что вылезло за границы
             {
                 if (i < 4096) {
-                    convolvedData[x][i] = (float) tempColumn[i].real() / 4096;
+                    convolvedData[x][i] = (float) tempColumn[i].re() / 4096;
                     //Math.Sqrt(tempColumn[i].Re * tempColumn[i].Re + tempColumn[i].Im * tempColumn[i].Im) / 4096;//(4096 * 4096);
                 }else {
                     convolvedData[x][i] = 0;
@@ -545,13 +551,13 @@ private:
         return convolvedData;
     }
 
-    void Convolution(comp* tempColumn, comp* impulseSpec)//спектр импульса уже умноженный на себя
+    void Convolution(complex* tempColumn, complex* impulseSpec)//спектр импульса уже умноженный на себя
     {
-        fourier_transform(tempColumn, 4096);
+        CFFT::Forward(tempColumn, 4096 );
         for (int i = 0;i < 4096; i++) {
             tempColumn[i] *= impulseSpec[i];
         }
-        inverse_fourier_transform(tempColumn, 4096);
+        CFFT::Inverse(tempColumn, 4096 );
     }
 
     void DrawDif(pointF p, float val, float prevTime) {

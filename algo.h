@@ -169,7 +169,7 @@ public:
 
         background = figure(vector<edge>{edge(pointI(0, 0), pointI(width - 1, 0), 0, 0),
                                          edge(pointI(0, height - 1), pointI(width - 1, height - 1), 1, 0)},
-                            stoi(bckgrnd[0]), stod(bckgrnd[1]), stod(bckgrnd[2]), 0);
+                            stoi(bckgrnd[0]), stod_c(bckgrnd[1]), stod_c(bckgrnd[2]), 0);
         //background.edges.Add();//грань с приёмниками
         //background.edges.Add();//противоположная грань
         figureCollection = vector<figure>();
@@ -255,7 +255,7 @@ public:
 
         int done = 0;
         //не создавать разные варианты генерации с одним и тем же именем!
-//#pragma omp parallel for schedule(dynamic, 3) num_threads(hlf_thr)
+#pragma omp parallel for schedule(dynamic, 3) num_threads(hlf_thr)
         for (int i = 0; i < cntCoord; i++) {
             //если файл с данным именем уже существует, мы считаем, что он создан раньше и уже посчитан
             if (!ifstream("L" + fileName + ".data" + to_string(i)))
@@ -270,11 +270,11 @@ public:
                 Timer tmr;
                 double t1 = tmr.elapsed();
                 int remains = cntCoord - 2 - done;
-                cout << "busy: " << remains << endl;
+                cout << "remains: " << remains << endl;
                 remains = remains < 1 ? 1 : remains;
                 int free = max(hlf_thr / remains, 2);
                 cout << "free threads: " << free << endl;
-//#pragma omp parallel for schedule(dynamic) num_threads(free)
+#pragma omp parallel for schedule(dynamic) num_threads(free)
                 for (int j = 0;
                      j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
                 {

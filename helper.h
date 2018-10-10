@@ -21,6 +21,7 @@ using std::vector;
 using std::stringstream;
 using std::to_string;
 using std::unordered_map;
+using std::locale;
 
 vector<string> split(const string s, char delim)
 {
@@ -53,6 +54,20 @@ template<typename K, typename V>
 bool containsKey(unordered_map<K, V> m, K k) {
     auto it = m.find(k);
     return it != m.end();
+}
+
+class My_punct : public std::numpunct<char> {
+protected:
+    char do_decimal_point() const {return ',';}//comma
+};
+
+double stod_c(string s) {
+    locale loc(locale(), new My_punct);
+    stringstream ss(s);
+    ss.imbue(loc);
+    double d;
+    ss >> d;
+    return d;
 }
 
 

@@ -130,7 +130,7 @@ private:
     double GetDistance(pointF p1, pointF p2) {
         float difX = p2.X - p1.X;
         float difY = p2.Y - p1.Y;
-        return sqrt(difX * difX + difY * difY);
+        return sqrt((double)(difX * difX + difY * difY));
     }
 
     double GetArea()//площадь полигона
