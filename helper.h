@@ -13,6 +13,8 @@
 #include <vector>  //for std::istringstream
 #include <typeinfo>
 #include <unordered_map>
+#include "complex.h"
+#include <iomanip>
 
 using std::count;
 using std::string;
@@ -22,6 +24,37 @@ using std::stringstream;
 using std::to_string;
 using std::unordered_map;
 using std::locale;
+using std::setprecision;
+using std::fixed;
+
+string left_trim(const string& str, char symbol = ' ')
+{
+    size_t first = str.find_first_not_of(symbol);
+    if (string::npos == first)
+    {
+        return str;
+    }
+    return str.substr(first);
+}
+
+string right_trim(const string& str, char symbol = ' ')
+{
+    size_t first = str.find_first_not_of(symbol);
+    if (string::npos == first)
+    {
+        return str;
+    }
+    size_t last = str.find_last_not_of(symbol);
+    if (last != first) {
+        last = (last - first + 1);
+    }
+    return str.substr(0, last + 1);
+}
+
+string trim(const string& str, char symbol = ' ')
+{
+    return left_trim(right_trim(str, symbol), symbol);
+}
 
 vector<string> split(const string s, char delim)
 {
@@ -70,6 +103,29 @@ double stod_c(string s) {
     return d;
 }
 
+template<typename T>
+string serialize(T* arr, int size) {
+    string res = "[";
+    for (int i = 0; i < size; i++) {
+        res += to_string(arr[i]);
+        if (i < size - 1) {
+            res += ",";
+        }
+    }
+    res += "]";
+    return res;
+}
+
+
+string to_string(complex numb) {
+    stringstream ss1, ss2;
+    string re, im;
+    ss1 << fixed << setprecision( 17 ) << numb.re();
+    ss2 << fixed << setprecision( 17 ) << numb.im();
+    ss1 >> re;
+    ss2 >> im;
+    return "{" + re + "," + im + "}";
+}
 
 #if defined(_WIN32)
 #include <iostream>

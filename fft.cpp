@@ -23,6 +23,8 @@ bool CFFT::Forward(const complex *const Input, complex *const Output, const unsi
 	Rearrange(Input, Output, N);
 	//   Call FFT implementation
 	Perform(Output, N);
+    //   Conjugate
+    Conjugate(Output, N);
 	//   Succeeded
 	return true;
 }
@@ -39,6 +41,8 @@ bool CFFT::Forward(complex *const Data, const unsigned int N)
 	Rearrange(Data, N);
 	//   Call FFT implementation
 	Perform(Data, N);
+    //   Conjugate
+    Conjugate(Data, N);
 	//   Succeeded
 	return true;
 }
@@ -178,4 +182,13 @@ void CFFT::Scale(complex *const Data, const unsigned int N)
 	//   Scale all data entries
 	for (unsigned int Position = 0; Position < N; ++Position)
 		Data[Position] *= Factor;
+}
+
+//   Conjugate complex array
+void CFFT::Conjugate(complex *const Data, const unsigned int N)
+{
+	const double Factor = 1. / double(N);
+	//   Scale all data entries
+	for (unsigned int Position = 0; Position < N; ++Position)
+		Data[Position] = Data[Position].conjugate();
 }

@@ -578,11 +578,13 @@ private:
 
     void Convolution(complex *tempColumn, complex *impulseSpec)//спектр импульса уже умноженный на себя
     {
-        CFFT::Forward(tempColumn, 4096);
-        for (int i = 0; i < 4096; i++) {
+        int size = 4096;
+        CFFT::Forward(tempColumn, size);
+        for (int i = 0; i < size; i++) {
             tempColumn[i] *= impulseSpec[i];
         }
-        CFFT::Inverse(tempColumn, 4096);
+//        string funcStr = serialize<complex>(tempColumn, size);
+        CFFT::Inverse(tempColumn, size);
     }
 
     void DrawDif(pointF p, float val, float prevTime) {

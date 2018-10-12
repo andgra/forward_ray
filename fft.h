@@ -48,6 +48,9 @@ protected:
 
 	//   Scaling of inverse FFT result
 	static void Scale(complex *const Data, const unsigned int N);
+
+//   Conjugate complex array
+    static void Conjugate(complex *const Data, const unsigned int N);
 };
 
 #endif
