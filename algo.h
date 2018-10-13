@@ -254,9 +254,14 @@ public:
         vector<vec2f> directions = GenerateArrayOfVectors(30, 0.01);//0.0001);
 
         int done = 0;
+        int busy_threads = 0;
         //не создавать разные варианты генерации с одним и тем же именем!
 //#pragma omp parallel for schedule(dynamic, 3) num_threads(hlf_thr)
         for (int i = 0; i < cntCoord; i++) {
+#pragma omp critical
+            {
+                busy_threads++;
+            };
             //если файл с данным именем уже существует, мы считаем, что он создан раньше и уже посчитан
             if (!ifstream("L" + fileName + ".data" + to_string(i)))
             {
@@ -278,6 +283,11 @@ public:
                 for (int j = 0;
                      j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
                 {
+
+#pragma omp critical
+                    {
+                        busy_threads++;
+                    };
 //                std::cout << "thr " << omp_get_num_threads() << std::endl;
                     vec2f d = directions[j];
 
@@ -305,6 +315,11 @@ public:
                     }
 //                auto c = 1;
 //                j++;
+
+#pragma omp critical
+                    {
+                        busy_threads--;
+                    };
                 }
                 double t = tmr.elapsed() - t1;
                 std::cout << "time " << t << std::endl;
@@ -322,6 +337,11 @@ public:
                 }
             }
             done++;
+
+#pragma omp critical
+            {
+                busy_threads--;
+            };
         }
 
 

@@ -14,7 +14,7 @@
 //     Input  - input data
 //     Output - transform result
 //     N      - length of both input data and result
-bool CFFT::Forward(const complex *const Input, complex *const Output, const unsigned int N)
+bool CFFT::Forward(const comp *const Input, comp *const Output, const unsigned int N)
 {
 	//   Check input parameters
 	if (!Input || !Output || N < 1 || N & (N - 1))
@@ -32,7 +32,7 @@ bool CFFT::Forward(const complex *const Input, complex *const Output, const unsi
 //   FORWARD FOURIER TRANSFORM, INPLACE VERSION
 //     Data - both input data and output
 //     N    - length of input data
-bool CFFT::Forward(complex *const Data, const unsigned int N)
+bool CFFT::Forward(comp *const Data, const unsigned int N)
 {
 	//   Check input parameters
 	if (!Data || N < 1 || N & (N - 1))
@@ -52,7 +52,7 @@ bool CFFT::Forward(complex *const Data, const unsigned int N)
 //     Output - transform result
 //     N      - length of both input data and result
 //     Scale  - if to scale result
-bool CFFT::Inverse(const complex *const Input, complex *const Output, const unsigned int N, const bool Scale /* = true */)
+bool CFFT::Inverse(const comp *const Input, comp *const Output, const unsigned int N, const bool Scale /* = true */)
 {
 	//   Check input parameters
 	if (!Input || !Output || N < 1 || N & (N - 1))
@@ -72,15 +72,19 @@ bool CFFT::Inverse(const complex *const Input, complex *const Output, const unsi
 //     Data  - both input data and output
 //     N     - length of both input data and result
 //     Scale - if to scale result
-bool CFFT::Inverse(complex *const Data, const unsigned int N, const bool Scale /* = true */)
+bool CFFT::Inverse(comp *const Data, const unsigned int N, const bool Scale /* = true */)
 {
 	//   Check input parameters
 	if (!Data || N < 1 || N & (N - 1))
 		return false;
 	//   Rearrange
 	Rearrange(Data, N);
+    //   Conjugate
+    Conjugate(Data, N);
 	//   Call FFT implementation
 	Perform(Data, N, true);
+    //   Conjugate
+    Conjugate(Data, N);
 
 	//   Scale if necessary
 	if (Scale)
@@ -90,7 +94,7 @@ bool CFFT::Inverse(complex *const Data, const unsigned int N, const bool Scale /
 }
 
 //   Rearrange function
-void CFFT::Rearrange(const complex *const Input, complex *const Output, const unsigned int N)
+void CFFT::Rearrange(const comp *const Input, comp *const Output, const unsigned int N)
 {
 	//   Data entry position
 	unsigned int Target = 0;
@@ -111,7 +115,7 @@ void CFFT::Rearrange(const complex *const Input, complex *const Output, const un
 }
 
 //   Inplace version of rearrange function
-void CFFT::Rearrange(complex *const Data, const unsigned int N)
+void CFFT::Rearrange(comp *const Data, const unsigned int N)
 {
 	//   Swap position
 	unsigned int Target = 0;
@@ -122,7 +126,7 @@ void CFFT::Rearrange(complex *const Data, const unsigned int N)
 		if (Target > Position)
 		{
 			//   Swap entries
-			const complex Temp(Data[Target]);
+			const comp Temp(Data[Target]);
 			Data[Target] = Data[Position];
 			Data[Position] = Temp;
 		}
@@ -138,7 +142,7 @@ void CFFT::Rearrange(complex *const Data, const unsigned int N)
 }
 
 //   FFT implementation
-void CFFT::Perform(complex *const Data, const unsigned int N, const bool Inverse /* = false */)
+void CFFT::Perform(comp *const Data, const unsigned int N, const bool Inverse /* = false */)
 {
 	const double pi = Inverse ? 3.14159265358979323846 : -3.14159265358979323846;
 	//   Iteration through dyads, quadruples, octads and so on...
@@ -151,9 +155,9 @@ void CFFT::Perform(complex *const Data, const unsigned int N, const bool Inverse
 		//   Auxiliary sin(delta / 2)
 		const double Sine = sin(delta * .5);
 		//   Multiplier for trigonometric recurrence
-		const complex Multiplier(-2. * Sine * Sine, sin(delta));
+		const comp Multiplier(-2. * Sine * Sine, sin(delta));
 		//   Start value for transform factor, fi = 0
-		complex Factor(1.);
+		comp Factor(1.);
 		//   Iteration through groups of different transform factor
 		for (unsigned int Group = 0; Group < Step; ++Group)
 		{
@@ -163,7 +167,7 @@ void CFFT::Perform(complex *const Data, const unsigned int N, const bool Inverse
 				//   Match position
 				const unsigned int Match = Pair + Step;
 				//   Second term of two-point transform
-				const complex Product(Factor * Data[Match]);
+				const comp Product(Factor * Data[Match]);
 				//   Transform for fi + pi
 				Data[Match] = Data[Pair] - Product;
 				//   Transform for fi
@@ -176,7 +180,7 @@ void CFFT::Perform(complex *const Data, const unsigned int N, const bool Inverse
 }
 
 //   Scaling of inverse FFT result
-void CFFT::Scale(complex *const Data, const unsigned int N)
+void CFFT::Scale(comp *const Data, const unsigned int N)
 {
 	const double Factor = 1. / double(N);
 	//   Scale all data entries
@@ -184,11 +188,21 @@ void CFFT::Scale(complex *const Data, const unsigned int N)
 		Data[Position] *= Factor;
 }
 
-//   Conjugate complex array
-void CFFT::Conjugate(complex *const Data, const unsigned int N)
+//   Conjugate comp array
+void CFFT::Conjugate(comp *const Data, const unsigned int N)
 {
 	const double Factor = 1. / double(N);
 	//   Scale all data entries
 	for (unsigned int Position = 0; Position < N; ++Position)
-		Data[Position] = Data[Position].conjugate();
+		Data[Position] = conj(Data[Position]);
+}
+
+
+void fourier_transform(comp *array, unsigned int size)
+{
+    CFFT::Forward(array, size);
+}
+void inverse_fourier_transform(comp *array, unsigned int size)
+{
+    CFFT::Inverse(array, size, false);
 }

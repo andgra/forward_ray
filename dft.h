@@ -1,5 +1,5 @@
 /*
- * Fast Fourier Transform (with complex numbers)
+ * Fast Fourier Transform (with comp numbers)
  *
  * Daniel Shved, MIPT, 2010.
  * danshved [at] gmail.com
@@ -9,12 +9,11 @@
 #define __DFT_H__
 
 #include <math.h>
-#include <complex>
+#include "comp.h"
 #include <algorithm>
 #include <stack>
 using namespace std;
 
-typedef complex<double> comp;
 
 /*
  * "Butterfly" transform.
@@ -30,7 +29,7 @@ inline void butterfly(comp &x, comp &y, comp w)
  * Given a number ``x'' returns the number which has the same bits as ``x'',
  * but in the reverse order
  */
-inline unsigned int backwards(unsigned int x, int length)
+inline unsigned int backwards(unsigned int x, unsigned int length)
 {
     unsigned int result = 0;
     unsigned int bit = 1u;
@@ -49,7 +48,7 @@ inline unsigned int backwards(unsigned int x, int length)
 /*
  * Series of butterfly transforms required by the FFT algorithm.
  */
-inline void mass_butterfly(comp *array, int size, comp w)
+inline void mass_butterfly(comp *array, unsigned int size, comp w)
 {
     comp power(1.0, 0.0);
     int n = size/2;
@@ -80,9 +79,9 @@ static void reposition(comp *array, int size)
 }
 
 /*
- * Replaces every element of the vector by its complex conjugate.
+ * Replaces every element of the vector by its comp conjugate.
  */
-void conjugate(comp *array, int size)
+void conjugate(comp *array, unsigned int size)
 {
     for(int i = 0; i < size; i++)
         array[i] = conj(array[i]);
@@ -92,7 +91,7 @@ void conjugate(comp *array, int size)
  * Does the Discrete Fourier Transform.  Takes time O(size * log(size)).
  * ``size'' must be a power of 2.
  */
-void fourier_transform(comp *array, int size)
+void fourier_transform(comp *array, unsigned int size)
 {
     // Arrange numbers in a convenient order
     reposition(array, size);
@@ -118,7 +117,7 @@ void fourier_transform(comp *array, int size)
 /*
  * The inverse DFT.
  */
-void inverse_fourier_transform(comp *array, int size)
+void inverse_fourier_transform(comp *array, unsigned int size)
 {
     conjugate(array, size);
     fourier_transform(array, size);
@@ -130,7 +129,7 @@ void inverse_fourier_transform(comp *array, int size)
 /*
  * Multiplies two vectors element by element.
  */
-void multiply(comp *arr1, comp *arr2, comp *result, int size)
+void multiply(comp *arr1, comp *arr2, comp *result, unsigned int size)
 {
     for(int i = 0; i < size; i++)
         result[i] = arr1[i] * arr2[i];
@@ -141,7 +140,7 @@ void multiply(comp *arr1, comp *arr2, comp *result, int size)
  * that the result has power less than ``size'').  ``size'' must be a power of
  * 2.
  */
-void convolution(comp *arr1, comp *arr2, comp *result, int size)
+void convolution(comp *arr1, comp *arr2, comp *result, unsigned int size)
 {
     fourier_transform(arr1, size);
     fourier_transform(arr2, size);

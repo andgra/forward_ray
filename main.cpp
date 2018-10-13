@@ -4,6 +4,7 @@
 #include "point.h"
 #include "helper.h"
 #include <unordered_map>
+//#include <Exocor>
 
 using std::cout;
 using std::string;
@@ -12,6 +13,7 @@ using std::endl;
 typedef unordered_map<int, string> mm;
 
 int main(int argc, char* args[]) {
+//    Exocortex.DSP.Complex a(123);
 //    pointI p(100, 30);
 //
 //    auto p1 = pointF::conv(p);

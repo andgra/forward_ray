@@ -18,6 +18,6 @@ endif()
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -lpthread")
 
-add_executable(straight_ray main.cpp point.h vec2.h data.h edge.h beam.h intersection.h figure.h arrayOfReceiversTransmitters.h algo.h dft.h complex.cpp fft.cpp helper.h)
+add_executable(straight_ray main.cpp point.h vec2.h data.h edge.h beam.h intersection.h figure.h arrayOfReceiversTransmitters.h algo.h dft.h comp.cpp fft.cpp helper.h exo.h)
 
-#target_link_libraries(straight_ray ${OpenCV_LIBS})
+target_link_libraries(straight_ray D:\\projects\\clion\\straight_ray\\Exocortex.DSP.v1.dll)

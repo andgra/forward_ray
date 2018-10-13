@@ -9,7 +9,7 @@
 #define _FFT_H_
 
 //   Include complex numbers header
-#include "complex.h"
+#include "comp.h"
 
 class CFFT
 {
@@ -18,39 +18,42 @@ public:
 	//     Input  - input data
 	//     Output - transform result
 	//     N      - length of both input data and result
-	static bool Forward(const complex *const Input, complex *const Output, const unsigned int N);
+	static bool Forward(const comp *const Input, comp *const Output, const unsigned int N);
 
 	//   FORWARD FOURIER TRANSFORM, INPLACE VERSION
 	//     Data - both input data and output
 	//     N    - length of input data
-	static bool Forward(complex *const Data, const unsigned int N);
+	static bool Forward(comp *const Data, const unsigned int N);
 
 	//   INVERSE FOURIER TRANSFORM
 	//     Input  - input data
 	//     Output - transform result
 	//     N      - length of both input data and result
 	//     Scale  - if to scale result
-	static bool Inverse(const complex *const Input, complex *const Output, const unsigned int N, const bool Scale = true);
+	static bool Inverse(const comp *const Input, comp *const Output, const unsigned int N, const bool Scale = true);
 
 	//   INVERSE FOURIER TRANSFORM, INPLACE VERSION
 	//     Data  - both input data and output
 	//     N     - length of both input data and result
 	//     Scale - if to scale result
-	static bool Inverse(complex *const Data, const unsigned int N, const bool Scale = true);
+	static bool Inverse(comp *const Data, const unsigned int N, const bool Scale = true);
 
 protected:
 	//   Rearrange function and its inplace version
-	static void Rearrange(const complex *const Input, complex *const Output, const unsigned int N);
-	static void Rearrange(complex *const Data, const unsigned int N);
+	static void Rearrange(const comp *const Input, comp *const Output, const unsigned int N);
+	static void Rearrange(comp *const Data, const unsigned int N);
 
 	//   FFT implementation
-	static void Perform(complex *const Data, const unsigned int N, const bool Inverse = false);
+	static void Perform(comp *const Data, const unsigned int N, const bool Inverse = false);
 
 	//   Scaling of inverse FFT result
-	static void Scale(complex *const Data, const unsigned int N);
+	static void Scale(comp *const Data, const unsigned int N);
 
-//   Conjugate complex array
-    static void Conjugate(complex *const Data, const unsigned int N);
+//   Conjugate comp array
+    static void Conjugate(comp *const Data, const unsigned int N);
 };
+
+void fourier_transform(comp *array, unsigned int size);
+void inverse_fourier_transform(comp *array, unsigned int size);
 
 #endif

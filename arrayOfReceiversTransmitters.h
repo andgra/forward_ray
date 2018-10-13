@@ -12,9 +12,8 @@
 #include "figure.h"
 #include "intersection.h"
 #include "data.h"
-//#include <complex>
 //#include "dft.h"
-#include "fft.h"
+//#include "fft.h"
 #include <unordered_map>
 #include <queue>
 #include <math.h>
@@ -24,7 +23,6 @@
 //
 //using namespace cv;
 
-//typedef complex<double> comp;
 
 using namespace std;
 
@@ -545,16 +543,16 @@ private:
         for (int i = 0; i < coordinates.size(); i++) {
             convolvedData[i] = vector<float>(maxTime + 1);
         }
-        complex *tempColumn;
-        auto impulseSpec = new complex[4096];
+        comp *tempColumn;
+        auto impulseSpec = new comp[4096];
         for (int i = 0; i < signal.size(); i++) {
             //if (i < impulse.Length)
             impulseSpec[i] = signal[i];
         }
 
-        CFFT::Forward(impulseSpec, 4096);
+        FFT(impulseSpec, 4096);
         for (int x = 0; x < width / step; x++) {
-            tempColumn = new complex[4096];
+            tempColumn = new comp[4096];
             for (int i = 0; i < min(4096, maxTime); i++) {
                 tempColumn[i] = recordedData[x][i];
             }
@@ -563,7 +561,7 @@ private:
             for (int i = 0; i <= maxTime; i++)//обрезаем то, что вылезло за границы
             {
                 if (i < 4096) {
-                    convolvedData[x][i] = (float) tempColumn[i].re() / 4096;
+                    convolvedData[x][i] = (float) tempColumn[i].real() / 4096;
                     //Math.Sqrt(tempColumn[i].Re * tempColumn[i].Re + tempColumn[i].Im * tempColumn[i].Im) / 4096;//(4096 * 4096);
                 } else {
                     convolvedData[x][i] = 0;
@@ -576,15 +574,15 @@ private:
         return convolvedData;
     }
 
-    void Convolution(complex *tempColumn, complex *impulseSpec)//спектр импульса уже умноженный на себя
+    void Convolution(comp *tempColumn, comp *impulseSpec)//спектр импульса уже умноженный на себя
     {
-        int size = 4096;
-        CFFT::Forward(tempColumn, size);
+        unsigned int size = 4096;
+        FFT(tempColumn, size);
         for (int i = 0; i < size; i++) {
             tempColumn[i] *= impulseSpec[i];
         }
 //        string funcStr = serialize<complex>(tempColumn, size);
-        CFFT::Inverse(tempColumn, size);
+        IFFT(tempColumn, size);
     }
 
     void DrawDif(pointF p, float val, float prevTime) {

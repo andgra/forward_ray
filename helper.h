@@ -13,8 +13,10 @@
 #include <vector>  //for std::istringstream
 #include <typeinfo>
 #include <unordered_map>
-#include "complex.h"
+//#include "comp.h"
 #include <iomanip>
+#include "simple_fft/fft_settings.h"
+#include "simple_fft/fft.h"
 
 using std::count;
 using std::string;
@@ -26,6 +28,8 @@ using std::unordered_map;
 using std::locale;
 using std::setprecision;
 using std::fixed;
+
+typedef complex_type comp;
 
 string left_trim(const string& str, char symbol = ' ')
 {
@@ -117,14 +121,24 @@ string serialize(T* arr, int size) {
 }
 
 
-string to_string(complex numb) {
+string to_string(comp numb) {
     stringstream ss1, ss2;
     string re, im;
-    ss1 << fixed << setprecision( 17 ) << numb.re();
-    ss2 << fixed << setprecision( 17 ) << numb.im();
+    ss1 << fixed << setprecision( 17 ) << numb.real();
+    ss2 << fixed << setprecision( 17 ) << numb.imag();
     ss1 >> re;
     ss2 >> im;
     return "{" + re + "," + im + "}";
+}
+
+void FFT(comp* data, unsigned int size) {
+    const char * error = NULL; // error description
+    simple_fft::FFT(data, size, error);
+}
+
+void IFFT(comp* data, unsigned int size) {
+    const char * error = NULL; // error description
+    simple_fft::IFFT(data, size, error);
 }
 
 #if defined(_WIN32)
