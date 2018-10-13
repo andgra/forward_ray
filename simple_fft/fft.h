@@ -33,15 +33,15 @@ bool FFT(TComplexArray3D & data, const size_t size1, const size_t size2, const s
 
 // in-place, complex, inverse
 template <class TComplexArray1D>
-bool IFFT(TComplexArray1D & data, const size_t size, const char *& error_description);
+bool IFFT(TComplexArray1D & data, const size_t size, const char *& error_description, const bool scale = true);
 
 template <class TComplexArray2D>
 bool IFFT(TComplexArray2D & data, const size_t size1, const size_t size2,
-          const char *& error_description);
+          const char *& error_description, const bool scale = true);
 
 template <class TComplexArray3D>
 bool IFFT(TComplexArray3D & data, const size_t size1, const size_t size2, const size_t size3,
-          const char *& error_description);
+          const char *& error_description, const bool scale = true);
 
 // not-in-place, complex, forward
 template <class TComplexArray1D>
@@ -60,16 +60,16 @@ bool FFT(const TComplexArray3D & data_in, TComplexArray3D & data_out,
 // not-in-place, complex, inverse
 template <class TComplexArray1D>
 bool IFFT(const TComplexArray1D & data_in, TComplexArray1D & data_out,
-          const size_t size, const char *& error_description);
+          const size_t size, const char *& error_description, const bool scale = true);
 
 template <class TComplexArray2D>
 bool IFFT(const TComplexArray2D & data_in, TComplexArray2D & data_out,
-          const size_t size1, const size_t size2, const char *& error_description);
+          const size_t size1, const size_t size2, const char *& error_description, const bool scale = true);
 
 template <class TComplexArray3D>
 bool IFFT(const TComplexArray3D & data_in, TComplexArray3D & data_out,
           const size_t size1, const size_t size2, const size_t size3,
-          const char *& error_description);
+          const char *& error_description, const bool scale = true);
 
 // not-in-place, real, forward
 template <class TRealArray1D, class TComplexArray1D>

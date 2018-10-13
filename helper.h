@@ -138,7 +138,7 @@ void FFT(comp* data, unsigned int size) {
 
 void IFFT(comp* data, unsigned int size) {
     const char * error = NULL; // error description
-    simple_fft::IFFT(data, size, error);
+    simple_fft::IFFT(data, size, error, false);
 }
 
 #if defined(_WIN32)

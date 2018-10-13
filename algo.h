@@ -40,6 +40,9 @@ using std::istream_iterator;
 using std::to_string;
 using std::cout;
 using std::exception;
+using std::endl;
+using std::ios;
+using std::ofstream;
 
 string basePath(string const pathname) {
     return pathname.substr(pathname.find_last_of("/\\") + 1);
@@ -255,11 +258,13 @@ public:
 
         int done = 0;
         int busy_threads = 0;
+        int busy_transmitters = 0;
         //не создавать разные варианты генерации с одним и тем же именем!
-//#pragma omp parallel for schedule(dynamic, 3) num_threads(hlf_thr)
+#pragma omp parallel for schedule(dynamic, 3) num_threads(hlf_thr)
         for (int i = 0; i < cntCoord; i++) {
 #pragma omp critical
             {
+                busy_transmitters++;
                 busy_threads++;
             };
             //если файл с данным именем уже существует, мы считаем, что он создан раньше и уже посчитан
@@ -279,7 +284,7 @@ public:
                 remains = remains < 1 ? 1 : remains;
                 int free = max(hlf_thr / remains, 2);
                 cout << "free threads: " << free << endl;
-//#pragma omp parallel for schedule(dynamic) num_threads(free)
+#pragma omp parallel for schedule(dynamic) num_threads(free)
                 for (int j = 0;
                      j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
                 {
@@ -340,6 +345,7 @@ public:
 
 #pragma omp critical
             {
+                busy_transmitters--;
                 busy_threads--;
             };
         }

@@ -251,7 +251,8 @@ struct CFFT<TComplexArray1D,1>
     // NOTE: passing by pointer is needed to avoid using element access operator
     static bool FFT_inplace(TComplexArray1D & data, const size_t size,
                             const FFT_direction fft_direction,
-                            const char *& error_description)
+                            const char *& error_description,
+                            const bool scale = true)
     {
         if(!checkNumElements(size, error_description)) {
             return false;
@@ -263,7 +264,7 @@ struct CFFT<TComplexArray1D,1>
             return false;
         }
 
-        if (FFT_BACKWARD == fft_direction) {
+        if (FFT_BACKWARD == fft_direction && scale) {
             scaleValues(data, size);
         }
 
@@ -276,7 +277,8 @@ template <class TComplexArray2D>
 struct CFFT<TComplexArray2D,2>
 {
     static bool FFT_inplace(TComplexArray2D & data, const size_t size1, const size_t size2,
-                            const FFT_direction fft_direction, const char *& error_description)
+                            const FFT_direction fft_direction, const char *& error_description,
+                            const bool scale = true)
     {
         int n_rows = static_cast<int>(size1);
         int n_cols = static_cast<int>(size2);
@@ -301,7 +303,7 @@ struct CFFT<TComplexArray2D,2>
 
             if(!CFFT<std::vector<complex_type>,1>::FFT_inplace(subarray, size1,
                                                                fft_direction,
-                                                               error_description))
+                                                               error_description, scale))
             {
                 return false;
             }
@@ -340,7 +342,7 @@ struct CFFT<TComplexArray2D,2>
 
             if(!CFFT<std::vector<complex_type>,1>::FFT_inplace(subarray, size2,
                                                                fft_direction,
-                                                               error_description))
+                                                               error_description, scale))
             {
                 return false;
             }
@@ -369,7 +371,8 @@ struct CFFT<TComplexArray3D,3>
 {
     static bool FFT_inplace(TComplexArray3D & data, const size_t size1, const size_t size2,
                             const size_t size3, const FFT_direction fft_direction,
-                            const char *& error_description)
+                            const char *& error_description,
+                            const bool scale = true)
     {
         int n_rows  = static_cast<int>(size1);
         int n_cols  = static_cast<int>(size2);
@@ -397,7 +400,7 @@ struct CFFT<TComplexArray3D,3>
 
                 if(!CFFT<std::vector<complex_type>,1>::FFT_inplace(subarray, size1,
                                                                    fft_direction,
-                                                                   error_description))
+                                                                   error_description, scale))
                 {
                     return false;
                 }
@@ -439,7 +442,7 @@ struct CFFT<TComplexArray3D,3>
 
                 if(!CFFT<std::vector<complex_type>,1>::FFT_inplace(subarray, size2,
                                                                    fft_direction,
-                                                                   error_description))
+                                                                   error_description, scale))
                 {
                     return false;
                 }
@@ -481,7 +484,7 @@ struct CFFT<TComplexArray3D,3>
 
                 if(!CFFT<std::vector<complex_type>,1>::FFT_inplace(subarray, size3,
                                                                    fft_direction,
-                                                                   error_description))
+                                                                   error_description, scale))
                 {
                     return false;
                 }

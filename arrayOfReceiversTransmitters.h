@@ -24,7 +24,8 @@
 //using namespace cv;
 
 
-using namespace std;
+//using namespace std;
+using std::queue;
 
 typedef unordered_map<int, float> diffMap;
 typedef unordered_map<string, diffMap> diffsMap;
@@ -554,7 +555,7 @@ private:
         for (int x = 0; x < width / step; x++) {
             tempColumn = new comp[4096];
             for (int i = 0; i < min(4096, maxTime); i++) {
-                tempColumn[i] = recordedData[x][i];
+                tempColumn[i] = comp((double)recordedData[x][i]);
             }
             Convolution(tempColumn, impulseSpec);
 
