@@ -8,6 +8,13 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
+
+set(MPI_C_HEADER_DIR "C:\\Program Files (x86)\\Microsoft SDKs\\MPI\\Include")
+set(MPI_CXX_HEADER_DIR "C:\\Program Files (x86)\\Microsoft SDKs\\MPI\\Include")
+include(FindMPI)
+FIND_PACKAGE(MPI REQUIRED)
+INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
+
 #set(OpenCV_DIR "D:\\opencv\\build\\")
 #set(OpenCV_DIR "D:\\opencv\\build\\x64\\vc14\\lib")
 #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
@@ -20,4 +27,4 @@ set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -lpthread")
 
 add_executable(straight_ray main.cpp point.h vec2.h data.h edge.h beam.h intersection.h figure.h arrayOfReceiversTransmitters.h algo.h dft.h comp.cpp fft.cpp helper.h exo.h)
 
-target_link_libraries(straight_ray D:\\projects\\clion\\straight_ray\\Exocortex.DSP.v1.dll)
+target_link_libraries(straight_ray ${MPI_LIBRARY} "-Wl,--enable-stdcall-fixup")
