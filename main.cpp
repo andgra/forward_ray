@@ -5,6 +5,7 @@
 #include "helper.h"
 #include <unordered_map>
 //#include <Exocor>
+#include "mpi.h"
 
 using std::cout;
 using std::string;
@@ -33,6 +34,8 @@ int main(int argc, char* args[]) {
 //    *s = "fsd";
 //    delete s;
 //    auto c = containsKey(m, 1, s);
+
+    MPI_Init(&argc, &args);
     try {
         if(args[1] == nullptr) {
             throw string("parameter was not sent");
@@ -48,5 +51,7 @@ int main(int argc, char* args[]) {
     catch (string &exp) {
         cout << "An error occurred while attempting to open the file. The error is: " << exp << endl;
     }
+
+    MPI_Finalize();
     return 0;
 }

@@ -45,7 +45,7 @@ public:
 
 
     arrayOfReceiversTransmitters(vector<int> coordinates_i, vector<vec2f> directons_i, int radius_i, int maxTime_i) {
-#pragma omp critical
+//#pragma omp critical
         {
             coordinates = coordinates_i;
             radius = radius_i;
@@ -65,7 +65,7 @@ public:
 
     void CheckAndRecord(float x, int time, float value)//, bool dif)
     {
-#pragma omp critical
+//#pragma omp critical
         {
             int pos = Check(x);
             if (pos != -1) {
@@ -103,7 +103,7 @@ public:
 //        double t0 = tmr.elapsed();
         auto strP = pointF::serialize(figureCollection[fIndex].GetNearestDifPoint(p));
 
-#pragma omp critical
+//#pragma omp critical
         {
 //        diffMap tempDif;
 //        if (!containsKey(difs, strP, tempDif))
@@ -623,7 +623,7 @@ private:
         float time = curTime + prevTime;
         if (time > maxTime)
             return;
-#pragma omp critical
+//#pragma omp critical
         {
             recordedData[position][(int) round(time)] += val * curVal / 2;
         }
@@ -639,14 +639,14 @@ private:
             if (newTime > maxTime)
                 return;
             if (position + i < coordinates.size()) {
-#pragma omp critical
+//#pragma omp critical
                 {
                     recordedData[position + i][(int) round(newTime)] += val * curVal / i;
                 }
                 stop = false;
             }
             if (position - i >= 0) {
-#pragma omp critical
+//#pragma omp critical
                 {
                     recordedData[position - i][(int) round(newTime)] += val * curVal / i;
                 }

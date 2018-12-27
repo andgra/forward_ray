@@ -11,13 +11,14 @@
 #include <sstream>  //for std::istringstream
 #include <iterator> //for std::istream_iterator
 #include <clocale>
-#include <omp.h>
+//#include <omp.h>
 #include "beam.h"
 #include "data.h"
 #include <queue>
 #include <string>
 #include <vector>
 #include <math.h>
+#include "mpi.h"
 
 #if defined(_WIN32)
 
@@ -135,10 +136,21 @@ system(("rm -r "+refcstrRootDirectory).c_str());
 }
 #endif
 
+void RefreshDir(const string path) {
+    DeleteDirectory(path);
+#if defined(_WIN32)
+//        _rmdir (path.c_str());
+    Sleep(100);
+    _mkdir(path.c_str());
+#else
+    mkdir(path.c_str(), 0777);
+#endif
+}
+
 
 class algo {
 public:
-    static void OpenFile(string path) {
+    static void OpenFile(const string path) {
         filePath = path;
         fileDir = dirnameOf(path);
         fileName = fileNameWoExt(path);
@@ -153,14 +165,24 @@ public:
              back_inserter(lines));
 
         int cntLines = lines.size();
-        cout << "dir: " << getOutPath() << endl;
-        DeleteDirectory(getOutPath());
-#if defined(_WIN32)
-//        _rmdir (getOutPath().c_str());
-        _mkdir(getOutPath().c_str());
-#else
-        mkdir(getOutPath().c_str(), 0777);
-#endif
+
+        int rank, clusterSize;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &clusterSize);
+        if (rank == 0) {
+            string outDir = getOutPath();
+            cout << "dir: " << outDir << endl;
+            RefreshDir(outDir);
+
+            // после подготовки папки, можем начинать работу в других процессах
+            for (int r = 1; r < clusterSize; r++) {
+                MPI_Send(0, 0, MPI_DOUBLE, r, 0, MPI_COMM_WORLD);
+            }
+        } else {
+            // ждем готовность папки для вывода
+            MPI_Status sC;
+            MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &sC);
+        }
 
         auto size = split(lines[0], ';');//нулевая строка - размеры
         width = stoi(size[0]);
@@ -241,10 +263,10 @@ public:
     }
 
     static void MainAlgorithm() {
-        int hlf_thr = omp_get_max_threads() / 2;
-        cout << "threads: " << omp_get_max_threads() << endl;
-        omp_set_nested(1);
-        cout << "nested: " << omp_get_nested() << endl;
+//        int hlf_thr = omp_get_max_threads() / 2;
+//        cout << "threads: " << omp_get_max_threads() << endl;
+//        omp_set_nested(1);
+//        cout << "nested: " << omp_get_nested() << endl;
         int step = 2;//расстояние между датчиками
         vector<int> coordinatesOfTransmitters = vector<int>(width / step);
         int cntCoord = coordinatesOfTransmitters.size();
@@ -259,10 +281,22 @@ public:
         int done = 0;
         int busy_threads = 0;
         int busy_transmitters = 0;
+
+
+
+        int rank, size;
+
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+        bool is_parallel = size > 1;
+
+        std::cout << "rank: " << rank << std::endl;
+//        return;
         //не создавать разные варианты генерации с одним и тем же именем!
-#pragma omp parallel for schedule(dynamic, 3) num_threads(hlf_thr)
-        for (int i = 0; i < cntCoord; i++) {
-#pragma omp critical
+//#pragma omp parallel for schedule(dynamic, 3) num_threads(hlf_thr)
+        for (int i = rank; i < cntCoord; i += size) {
+//#pragma omp critical
             {
                 busy_transmitters++;
                 busy_threads++;
@@ -279,17 +313,17 @@ public:
 //            int j = 0;
                 Timer tmr;
                 double t1 = tmr.elapsed();
-                int remains = cntCoord - 2 - done;
-                cout << "remains: " << remains << endl;
-                remains = remains < 1 ? 1 : remains;
-                int free = max(hlf_thr / remains, 2);
-                cout << "free threads: " << free << endl;
-#pragma omp parallel for schedule(dynamic) num_threads(free)
+//                int remains = cntCoord - 2 - done;
+//                cout << "remains: " << remains << endl;
+//                remains = remains < 1 ? 1 : remains;
+//                int using_thr = max(hlf_thr / remains, 2);
+//                cout << "using threads: " << using_thr << endl;
+//#pragma omp parallel for schedule(dynamic) num_threads(using_thr)
                 for (int j = 0;
                      j < directions.size(); j++)//добавляем все направления расчёта луча из данной точки в очередь
                 {
 
-#pragma omp critical
+//#pragma omp critical
                     {
                         busy_threads++;
                     };
@@ -321,7 +355,7 @@ public:
 //                auto c = 1;
 //                j++;
 
-#pragma omp critical
+//#pragma omp critical
                     {
                         busy_threads--;
                     };
@@ -332,7 +366,7 @@ public:
 
                 auto convolved = receivers.convolvedData();
 
-#pragma omp critical
+//#pragma omp critical
                 {
                     //записываем результаты данной фиксации
                     SaveData(
@@ -343,7 +377,7 @@ public:
             }
             done++;
 
-#pragma omp critical
+//#pragma omp critical
             {
                 busy_transmitters--;
                 busy_threads--;
@@ -351,11 +385,21 @@ public:
         }
 
 
-        SaveInfo(getOutPath() + "L" + fileName + ".data", maxTime, coordinatesOfTransmitters.size(), step);
-        //SaveInfoInUniversalFormat("L3-0.5_2D-z80_150.data", maxTime, coordinatesOfTransmitters.Length, step);
-        cout << "Finished" << endl;
-        double mt = mtmr.elapsed() - mt1;
-        std::cout << "total time " << mt << std::endl;
+        if (rank == 0) {
+            int waiting = size;
+            MPI_Status sR;
+            while(waiting > 0) {
+                MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &sR);
+                waiting--;
+            }
+            SaveInfo(getOutPath() + "L" + fileName + ".data", maxTime, coordinatesOfTransmitters.size(), step);
+            //SaveInfoInUniversalFormat("L3-0.5_2D-z80_150.data", maxTime, coordinatesOfTransmitters.Length, step);
+            cout << "Finished" << endl;
+            double mt = mtmr.elapsed() - mt1;
+            std::cout << "total time " << mt << std::endl;
+        } else {
+            MPI_Send(0, 0, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+        }
     }
 
 private:
