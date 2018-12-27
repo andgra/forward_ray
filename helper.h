@@ -131,9 +131,17 @@ string to_string(comp numb) {
     return "{" + re + "," + im + "}";
 }
 
+
+void conjugate(comp *array, unsigned int size)
+{
+    for(int i = 0; i < size; i++)
+        array[i] = conj(array[i]);
+}
+
 void FFT(comp* data, unsigned int size) {
     const char * error = NULL; // error description
     simple_fft::FFT(data, size, error);
+//    conjugate(data, size);
 }
 
 void IFFT(comp* data, unsigned int size) {
