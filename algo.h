@@ -385,12 +385,15 @@ public:
         }
 
 
+        int buff[1];
         if (rank == 0) {
-            int waiting = size;
-            MPI_Status sR;
+            int waiting = size - 1;
             while(waiting > 0) {
-                MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &sR);
+                MPI_Status sR;
+                MPI_Recv(buff, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &sR);
                 waiting--;
+                cout << "taken signal from " << sR.MPI_SOURCE << " source" << endl;
+                cout << "waiting " << waiting << " more" << endl << endl;
             }
             SaveInfo(getOutPath() + "L" + fileName + ".data", maxTime, coordinatesOfTransmitters.size(), step);
             //SaveInfoInUniversalFormat("L3-0.5_2D-z80_150.data", maxTime, coordinatesOfTransmitters.Length, step);
@@ -398,7 +401,8 @@ public:
             double mt = mtmr.elapsed() - mt1;
             std::cout << "total time " << mt << std::endl;
         } else {
-            MPI_Send(0, 0, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+            buff[0] = rank;
+            MPI_Send(buff, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
         }
     }
 
@@ -417,7 +421,7 @@ private:
         myFile.write(reinterpret_cast<char *>(&dymm), sizeof(dymm));
         myFile.write(reinterpret_cast<char *>(&df), sizeof(df));
 
-        cout << basePath(path + ".info") << " saved;" << endl;
+        cout << basePath(path + ".info") << " saved;" << endl << endl;
     }
 
     /*static void SaveInfoInUniversalFormat(string path, int maxtime, int cnt, int step) {
@@ -444,7 +448,7 @@ private:
             }
         }
 
-        cout << basePath(path) << " saved;" << endl;
+        cout << basePath(path) << " saved;" << endl << endl;
     }
 };
 
