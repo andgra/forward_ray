@@ -173,6 +173,13 @@ public:
             string outDir = getOutPath();
             cout << "dir: " << outDir << endl;
             RefreshDir(outDir);
+            cout
+                    << endl
+                    << "$$$$$$$$$$$$$$$$$$" << endl
+                    << "$$$ size: " << clusterSize << "    $$$" << endl
+                    << "$$$ START NOW! $$$" << endl
+                    << "$$$$$$$$$$$$$$$$$$" << endl
+                    << endl;
 
             // после подготовки папки, можем начинать работу в других процессах
             for (int r = 1; r < clusterSize; r++) {
@@ -285,20 +292,12 @@ public:
 
 
         int rank, size;
+        int buff[1];
 
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         MPI_Comm_size(MPI_COMM_WORLD, &size);
 
         bool is_parallel = size > 1;
-        if (rank == 0) {
-            cout
-            << endl
-            << "$$$$$$$$$$$$$$$$$$" << endl
-            << "$$$ size: " << size << "    $$$" << endl
-            << "$$$ START NOW! $$$" << endl
-            << "$$$$$$$$$$$$$$$$$$" << endl
-            << endl;
-        }
 
 //        std::cout << "rank: " << rank << std::endl;
 //        return;
@@ -395,7 +394,6 @@ public:
         std::cout << std::endl;
 
 
-        int buff[1];
         if (rank == 0) {
             int waiting = size - 1;
             while(waiting > 0) {
