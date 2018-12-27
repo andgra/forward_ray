@@ -1,2 +1,5 @@
 .idea
-data/out
+data/*
+!data/
+!data/in/
+!data/in/**
