@@ -173,13 +173,28 @@ public:
             string outDir = getOutPath();
             cout << "dir: " << outDir << endl;
             RefreshDir(outDir);
+
+            string header1 = "size: " + to_string(clusterSize);
+            string header2 = "START NOW!";
+
+            unsigned int header1Size = header1.length();
+            unsigned int header2Size = header2.length();
+            unsigned int maxHeaderSize = max(header1Size, header2Size);
+            char borderSymbol = '$';
+            unsigned int borderCnt = 3;
+
+            header1 = header1 + string(maxHeaderSize - header1Size, ' ');
+            header2 = header2 + string(maxHeaderSize - header2Size, ' ');
+            string verticalBorder = string(borderCnt * 2 + 2 + maxHeaderSize, borderSymbol);
+            string horizontalBorder = string(borderCnt, borderSymbol);
+
             cout
-                    << endl
-                    << "$$$$$$$$$$$$$$$$$$" << endl
-                    << "$$$ size: " << clusterSize << "    $$$" << endl
-                    << "$$$ START NOW! $$$" << endl
-                    << "$$$$$$$$$$$$$$$$$$" << endl
-                    << endl;
+                << endl
+                << verticalBorder << endl
+                << horizontalBorder << " " << header1 << " " << horizontalBorder << endl
+                << horizontalBorder << " " << header2 << " " << horizontalBorder << endl
+                << verticalBorder << endl
+                << endl;
 
             // после подготовки папки, можем начинать работу в других процессах
             for (int r = 1; r < clusterSize; r++) {
