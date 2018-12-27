@@ -309,7 +309,7 @@ public:
                                                                                       1,
                                                                                       maxTime);//запускаем новую фиксацию
 
-                std::cout << "started " << i << std::endl;
+                std::cout << "-----" << endl << "started " << i << endl << "-----";
 //            int j = 0;
                 Timer tmr;
                 double t1 = tmr.elapsed();
@@ -361,7 +361,7 @@ public:
                     };
                 }
                 double t = tmr.elapsed() - t1;
-                std::cout << "time " << t << std::endl;
+                std::cout << "-----" << endl << "ended " << i << "; time " << t << endl << "-----";
                 receivers.ProcessDifs();//Отрисовываем зафиксированные диф.
 
                 auto convolved = receivers.convolvedData();
@@ -383,6 +383,7 @@ public:
                 busy_threads--;
             };
         }
+        std::cout << std::endl;
 
 
         int buff[1];
@@ -448,7 +449,7 @@ private:
             }
         }
 
-        cout << basePath(path) << " saved;" << endl << endl;
+        cout << "-----" << endl << basePath(path) << " saved;" << endl << "-----";
     }
 };
 
