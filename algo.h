@@ -290,8 +290,17 @@ public:
         MPI_Comm_size(MPI_COMM_WORLD, &size);
 
         bool is_parallel = size > 1;
+        if (rank == 0) {
+            cout
+            << endl
+            << "$$$$$$$$$$$$$$$$$$" << endl
+            << "$$$ size: " << size << "    $$$" << endl
+            << "$$$ START NOW! $$$" << endl
+            << "$$$$$$$$$$$$$$$$$$" << endl
+            << endl;
+        }
 
-        std::cout << "rank: " << rank << std::endl;
+//        std::cout << "rank: " << rank << std::endl;
 //        return;
         //не создавать разные варианты генерации с одним и тем же именем!
 //#pragma omp parallel for schedule(dynamic, 3) num_threads(hlf_thr)
@@ -309,7 +318,7 @@ public:
                                                                                       1,
                                                                                       maxTime);//запускаем новую фиксацию
 
-                std::cout << "-----" << endl << "started " << i << endl << "-----";
+                std::cout  << endl << "-----" << endl << "started " << i << endl << "-----" << endl;
 //            int j = 0;
                 Timer tmr;
                 double t1 = tmr.elapsed();
