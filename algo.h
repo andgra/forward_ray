@@ -11,7 +11,7 @@
 #include <sstream>  //for std::istringstream
 #include <iterator> //for std::istream_iterator
 #include <clocale>
-//#include <omp.h>
+#include <omp.h>
 #include "beam.h"
 #include "data.h"
 #include <queue>
@@ -166,46 +166,6 @@ public:
 
         int cntLines = lines.size();
 
-        int rank, clusterSize;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &clusterSize);
-        if (rank == 0) {
-            string outDir = getOutPath();
-            cout << "dir: " << outDir << endl;
-            RefreshDir(outDir);
-
-            string header1 = "size: " + to_string(clusterSize);
-            string header2 = "START NOW!";
-
-            unsigned int header1Size = header1.length();
-            unsigned int header2Size = header2.length();
-            unsigned int maxHeaderSize = max(header1Size, header2Size);
-            char borderSymbol = '$';
-            unsigned int borderCnt = 3;
-
-            header1 = header1 + string(maxHeaderSize - header1Size, ' ');
-            header2 = header2 + string(maxHeaderSize - header2Size, ' ');
-            string verticalBorder = string(borderCnt * 2 + 2 + maxHeaderSize, borderSymbol);
-            string horizontalBorder = string(borderCnt, borderSymbol);
-
-            cout
-                << endl
-                << verticalBorder << endl
-                << horizontalBorder << " " << header1 << " " << horizontalBorder << endl
-                << horizontalBorder << " " << header2 << " " << horizontalBorder << endl
-                << verticalBorder << endl
-                << endl;
-
-            // после подготовки папки, можем начинать работу в других процессах
-            for (int r = 1; r < clusterSize; r++) {
-                MPI_Send(0, 0, MPI_DOUBLE, r, 0, MPI_COMM_WORLD);
-            }
-        } else {
-            // ждем готовность папки для вывода
-            MPI_Status sC;
-            MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &sC);
-        }
-
         auto size = split(lines[0], ';');//нулевая строка - размеры
         width = stoi(size[0]);
         height = stoi(size[1]);
@@ -298,7 +258,9 @@ public:
         Timer mtmr;
         double mt1 = mtmr.elapsed();
 
-        vector<vec2f> directions = GenerateArrayOfVectors(30, 0.01);//0.0001);
+        int sectorThreshold = 30;
+        double beamGradStep = 0.001;
+        vector<vec2f> directions = GenerateArrayOfVectors(sectorThreshold, beamGradStep);//0.0001);
 
         int done = 0;
         int busy_threads = 0;
@@ -308,9 +270,53 @@ public:
 
         int rank, size;
         int buff[1];
-
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+        if (rank == 0) {
+            string outDir = getOutPath();
+            cout << "dir: " << outDir << endl;
+            RefreshDir(outDir);
+
+            vector<string> headers = vector<string>();
+
+            headers.push_back("MPI ranks: " + to_string(size));
+            headers.push_back("OpenMP threads: " + to_string(omp_get_max_threads()));
+            headers.push_back("Sector threshold: " + to_string(sectorThreshold));
+            headers.push_back("Beam angle step: " + to_string(beamGradStep));
+
+            unsigned int maxHeaderSize = 0;
+            for (auto h: headers) {
+                unsigned int headerSize = h.length();
+                maxHeaderSize = max(maxHeaderSize, headerSize);
+            }
+
+            char borderSymbol = '$';
+            unsigned int borderCnt = 3;
+
+            string verticalBorder = string(borderCnt * 2 + 2 + maxHeaderSize, borderSymbol);
+            string horizontalBorder = string(borderCnt, borderSymbol);
+
+            string header;
+            header += "\n";
+            header += verticalBorder + "\n";
+            for (auto h: headers) {
+                header += horizontalBorder + " " + h + string(maxHeaderSize - h.length(), ' ') + " " + horizontalBorder + "\n";
+            }
+            header += verticalBorder + "\n";
+
+
+            cout << header << endl;
+
+            // после подготовки папки, можем начинать работу в других процессах
+            for (int r = 1; r < size; r++) {
+                MPI_Send(buff, 1, MPI_INT, r, 1, MPI_COMM_WORLD);
+            }
+        } else {
+            // ждем готовность папки для вывода
+            MPI_Status sC;
+            MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &sC);
+        }
 
         bool is_parallel = size > 1;
 
@@ -341,11 +347,11 @@ public:
 //                remains = remains < 1 ? 1 : remains;
 //                int using_thr = max(hlf_thr / remains, 2);
 //                cout << "using threads: " << using_thr << endl;
-//#pragma omp parallel for schedule(dynamic) num_threads(using_thr)
+//#pragma omp parallel for schedule(dynamic)
                 for (int j = 0; j < directions.size(); j++)
                 { //добавляем все направления расчёта луча из данной точки в очередь
 
-//#pragma omp critical
+#pragma omp critical
                     {
                         busy_threads++;
                     };
@@ -377,7 +383,7 @@ public:
 //                auto c = 1;
 //                j++;
 
-//#pragma omp critical
+#pragma omp critical
                     {
                         busy_threads--;
                     };

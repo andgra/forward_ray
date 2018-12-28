@@ -65,7 +65,7 @@ public:
 
     void CheckAndRecord(float x, int time, float value)//, bool dif)
     {
-//#pragma omp critical
+#pragma omp critical
         {
             int pos = Check(x);
             if (pos != -1) {
@@ -103,7 +103,7 @@ public:
 //        double t0 = tmr.elapsed();
         auto strP = pointF::serialize(figureCollection[fIndex].GetNearestDifPoint(p));
 
-//#pragma omp critical
+#pragma omp critical
         {
 //        diffMap tempDif;
 //        if (!containsKey(difs, strP, tempDif))
