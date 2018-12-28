@@ -347,7 +347,7 @@ public:
 //                remains = remains < 1 ? 1 : remains;
 //                int using_thr = max(hlf_thr / remains, 2);
 //                cout << "using threads: " << using_thr << endl;
-//#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
                 for (int j = 0; j < directions.size(); j++)
                 { //добавляем все направления расчёта луча из данной точки в очередь
 
