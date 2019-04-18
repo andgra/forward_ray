@@ -17,6 +17,7 @@
 #include <iomanip>
 #include "simple_fft/fft_settings.h"
 #include "simple_fft/fft.h"
+#include "fftw3.h"
 
 using std::count;
 using std::string;
@@ -131,6 +132,10 @@ string to_string(comp numb) {
     return "{" + re + "," + im + "}";
 }
 
+string to_string(fftw_complex numb) {
+    return to_string(comp(numb[0], numb[1]));
+}
+
 
 void conjugate(comp *array, unsigned int size)
 {
@@ -138,15 +143,51 @@ void conjugate(comp *array, unsigned int size)
         array[i] = conj(array[i]);
 }
 
+void multi(fftw_complex& first, const fftw_complex& second) {
+    fftw_complex res;
+    res[0] = first[0] * second[0] - first[1] * second[1];
+    res[1] = first[0] * second[1] + first[1] * second[0];
+    first[0] = res[0];
+    first[1] = res[1];
+}
+
 void FFT(comp* data, unsigned int size) {
-    const char * error = NULL; // error description
-    simple_fft::FFT(data, size, error);
+    auto * in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * size);
+    auto * out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * size);
+    for(int i = 0; i < size; i++) {
+        out[i][0] = data[i].real();
+        out[i][1] = data[i].imag();
+    }
+
+    fftw_plan p = fftw_plan_dft_1d(size, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_execute(p); /* repeat as needed */
+    fftw_destroy_plan(p);
+    for(int i = 0; i < size; i++) {
+        data[i] = comp(out[i][0], out[i][1]);
+    }
+    fftw_free(in); fftw_free(out);
+//    const char * error = NULL; // error description
+//    simple_fft::FFT(data, size, error);
 //    conjugate(data, size);
 }
 
 void IFFT(comp* data, unsigned int size) {
-    const char * error = NULL; // error description
-    simple_fft::IFFT(data, size, error, false);
+    auto * in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * size);
+    auto * out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * size);
+    for(int i = 0; i < size; i++) {
+        out[i][0] = data[i].real();
+        out[i][1] = data[i].imag();
+    }
+
+    fftw_plan p = fftw_plan_dft_1d(size, in, out, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_execute(p); /* repeat as needed */
+    fftw_destroy_plan(p);
+    for(int i = 0; i < size; i++) {
+        data[i] = comp(out[i][0], out[i][1]);
+    }
+    fftw_free(in); fftw_free(out);
+//    const char * error = NULL; // error description
+//    simple_fft::IFFT(data, size, error, false);
 }
 
 #if defined(_WIN32)
