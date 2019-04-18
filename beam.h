@@ -18,7 +18,7 @@ public:
     int figureIndex;//номер фигуры
     //List<pointF> path;
     beam() {}
-    beam(pointF startPoint, vec2f direction, float time, float value, int figureIndex)//, bool dif = false)
+    beam(const pointF& startPoint, const vec2f& direction, float time, float value, int figureIndex)//, bool dif = false)
     {
         this->startPoint = startPoint;
         this->direction = vec2f::normalize(direction);
@@ -29,7 +29,7 @@ public:
         //path.Add(startPoint);
     }
 
-    beam(beam oldBeam, pointF startPoint, vec2f direction, float time, float value,
+    beam(const beam& oldBeam, const pointF& startPoint, const vec2f& direction, float time, float value,
          int figureIndex)//, bool reflected)
     {
         this->figureIndex = figureIndex;

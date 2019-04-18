@@ -42,7 +42,7 @@ public:
 
     figure() {}
 
-    figure(vector<edge> edges_i, int speed_i, double density_i, double absorption_i, int index_i) {
+    figure(const vector<edge>& edges_i, int speed_i, double density_i, double absorption_i, int index_i) {
         edges = edges_i;
         speed = speed_i;
         density = density_i;

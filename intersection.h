@@ -23,9 +23,9 @@ public:
 
     intersection() { existed = false; }
 
-    intersection(pointF point, vec2f direction, int fIndex, int eIndex, vec2f normal, double distance) {
+    intersection(const pointF& point, const vec2f &dir, int fIndex, int eIndex, const vec2f &normal, double distance) {
         intersectionPoint = point;
-        this->direction = direction;
+        this->direction = dir;
         this->figureIndex = fIndex;
         this->edgeIndex = eIndex;
         this->normalVector = normal;

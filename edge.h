@@ -28,7 +28,7 @@ public:
     vec2f vectorOrdered() const{return vec2f::normalize(vec2f(xEnd - xStart, yEnd - yStart));}
     vec2f normalVector() const{return vec2f::normalize(vec2f(A, B));}
 
-    edge(pointI _p1, pointI _p2, int eindex, int findex) {
+    edge(const pointI& _p1, const pointI& _p2, int eindex, int findex) {
         this->p1 = _p1;
         this->p2 = _p2;
         A = p1.Y - p2.Y;
