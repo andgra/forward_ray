@@ -548,16 +548,16 @@ private:
         auto impulseSpec = new comp[4096];
         for (int i = 0; i < signal.size(); i++) {
             //if (i < impulse.Length)
-            impulseSpec[i] = signal[i];
+            impulseSpec[i] = comp(signal[i]);
         }
 
-        FFT(impulseSpec, 4096);
+//        FFT(impulseSpec, 4096);
         for (int x = 0; x < width / step; x++) {
             tempColumn = new comp[4096];
             for (int i = 0; i < min(4096, maxTime); i++) {
                 tempColumn[i] = comp((double)recordedData[x][i]);
             }
-            Convolution(tempColumn, impulseSpec);
+//            Convolution(tempColumn, impulseSpec);
 
             for (int i = 0; i <= maxTime; i++)//обрезаем то, что вылезло за границы
             {
