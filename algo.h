@@ -259,7 +259,7 @@ public:
         double mt1 = mtmr.elapsed();
 
         int sectorThreshold = 30;
-        double beamGradStep = 0.001;
+        double beamGradStep = 0.1;
         vector<vec2f> directions = GenerateArrayOfVectors(sectorThreshold, beamGradStep);//0.0001);
 
         int done = 0;
