@@ -635,7 +635,7 @@ private:
 
         for (int i = 1; stop != true; i++) {
             stop = true;
-            newTime = (float) ((sqrt(step * step * i * i + p.Y * p.Y) * dX / speed) / dt) - delta + prevTime;
+            newTime = (float) ((sqrt(pow(step * i - p.X, 2) + p.Y * p.Y) * dX / speed) / dt) - delta + prevTime;
             if (newTime > maxTime)
                 return;
             if (position + i < coordinates.size()) {
