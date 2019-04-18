@@ -542,7 +542,7 @@ private:
     vector<vector<float>> MakeConvolution() {
         auto convolvedData = vector<vector<float>>(coordinates.size())/*new double[coordinates.Length, ]*/;
         for (int i = 0; i < coordinates.size(); i++) {
-            convolvedData[i] = vector<float>(maxTime + 1);
+            convolvedData[i] = vector<float>(maxTime);
         }
         comp *tempColumn;
         auto impulseSpec = new comp[4096];
