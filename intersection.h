@@ -29,7 +29,8 @@ public:
         this->figureIndex = fIndex;
         this->edgeIndex = eIndex;
         this->normalVector = normal;
-        this->angle = acos(vec2f::dot(direction, normalVector) / (direction.length())) /
+        float dlen = direction.length();
+        this->angle = acos(vec2f::dot(direction, normalVector) / dlen) /
                      degreeToRadians;// * normalVector.length()));//длина нормального вектора всегда 1
         this->distance = distance;
 
