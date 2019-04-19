@@ -148,7 +148,6 @@ public:
 //        double t = tmr.elapsed() - t0;
 //        cout << "l " << t << endl;
         //diffactions.Add(new DifEffectInstance(figureCollection[fIndex].GetNearestDifPoint(p), prevTime, val));//записываем точную точку диф, а не то, где сработал луч
-        int a = 1;
     }
 
     void ProcessDifs() {
@@ -225,6 +224,7 @@ public:
                         if ((curBeam.direction.X * (x - curBeam.startPoint.X) >= 0) &&
                             (curBeam.direction.Y * (y - curBeam.startPoint.Y) >= 0)) {
                             currentDistance = GetDistance(pointF(x, y), curBeam.startPoint);
+                            if (fabs(currentDistance) < EPS) continue; //расстояние 0
                             if (currentDistance < closestIntersectionDistance) {
                                 vec2f dir = curBeam.direction;
                                 int fIndex = InWhichSmallestFigureIsPoint(pointF(x + dir.X, y + dir.Y));
@@ -550,6 +550,10 @@ private:
             //if (i < impulse.Length)
             impulseSpec[i] = comp(signal[i]);
         }
+        for (int i = signal.size(); i < 4096; i++) {
+            //if (i < impulse.Length)
+            impulseSpec[i] = comp(0);
+        }
 
 //        FFT(impulseSpec, 4096);
         for (int x = 0; x < width / step; x++) {
@@ -557,9 +561,12 @@ private:
             for (int i = 0; i < min(4096, maxTime); i++) {
                 tempColumn[i] = comp((double)recordedData[x][i]);
             }
+            for (int i = min(4096, maxTime); i < 4096; i++) {
+                tempColumn[i] = comp(0);
+            }
 //            Convolution(tempColumn, impulseSpec);
 
-            for (int i = 0; i <= maxTime; i++)//обрезаем то, что вылезло за границы
+            for (int i = 0; i < maxTime; i++)//обрезаем то, что вылезло за границы
             {
                 if (i < 4096) {
                     convolvedData[x][i] = (float) tempColumn[i].real() / 4096;
@@ -635,7 +642,7 @@ private:
 
         for (int i = 1; stop != true; i++) {
             stop = true;
-            newTime = (float) ((sqrt(pow(step * i - p.X, 2) + p.Y * p.Y) * dX / speed) / dt) - delta + prevTime;
+            newTime = (float) ((sqrt(pow(step * i, 2) + p.Y * p.Y) * dX / speed) / dt) - delta + prevTime;
             if (newTime > maxTime)
                 return;
             if (position + i < coordinates.size()) {
