@@ -235,11 +235,14 @@ public:
         directions[1] = vec2f(1, 0);//и прямая волна
         directions[2] = vec2f(-1, 0);
 
-        for (int i = 3; i < size; i += 2) {
-            directions[i] = vec2f((float) cos((normal - (i - 2) * step) * degreeToRadians),
-                                  (float) sin((normal - (i - 2) * step) * degreeToRadians));
-            directions[i + 1] = vec2f((float) cos((normal + (i - 2) * step) * degreeToRadians),
+        for (int i = 3; i < size + 1; i++) {
+            if (i % 2 == 0) {
+                directions[i] = vec2f((float) cos((normal + (i - 2) * step) * degreeToRadians),
                                       (float) sin((normal + (i - 2) * step) * degreeToRadians));
+            } else {
+                directions[i] = vec2f((float) cos((normal - (i - 2) * step) * degreeToRadians),
+                                      (float) sin((normal - (i - 2) * step) * degreeToRadians));
+            }
         }
         return directions;
     }
