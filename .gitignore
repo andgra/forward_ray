@@ -3,5 +3,5 @@ data/*
 !data/
 !data/in/
 !data/in/**
-bin/build/*
+build/*
 cmake-build-debug/*
