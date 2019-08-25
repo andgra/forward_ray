@@ -23,8 +23,12 @@ add_executable(forward_ray src/main.cpp src/point.h src/vec2.h src/data.h src/ed
 
 target_link_libraries(forward_ray ${MPI_LIBRARY})
 
-#msmpi.dll
-add_custom_command(TARGET forward_ray POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/src/lib/msmpi.dll      # <--this is in-file
-        $<TARGET_FILE_DIR:forward_ray>)                 # <--this is out-file path
+set(INCLUDE_MPI_DLL false)
+
+if (INCLUDE_MPI_DLL)
+    #msmpi.dll
+    add_custom_command(TARGET forward_ray POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_SOURCE_DIR}/src/lib/msmpi.dll      # <--this is in-file
+            $<TARGET_FILE_DIR:forward_ray>)                 # <--this is out-file path
+endif()
