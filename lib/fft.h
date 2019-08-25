@@ -9,7 +9,7 @@
 #define _FFT_H_
 
 //   Include complex numbers header
-#include "comp.h"
+#include "../comp.h"
 
 class CFFT
 {
