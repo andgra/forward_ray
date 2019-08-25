@@ -19,6 +19,7 @@
 #include <vector>
 #include <math.h>
 #include "mpi.h"
+#include "speedmap.h"
 
 #if defined(_WIN32)
 
@@ -169,6 +170,7 @@ public:
         auto size = split(lines[0], ';');//нулевая строка - размеры
         width = stoi(size[0]);
         height = stoi(size[1]);
+        step = size.size() > 2 ? stoi(size[2]) : 2; //если в модели не указан шаг - то по умолчанию 2
 
 
         vector<string> bckgrnd = split(lines[1],
@@ -219,7 +221,7 @@ public:
     }
 
 
-    static vector<vec2f> GenerateArrayOfVectors(int treshold, double step, bool onlyUp = false) {
+    static vector<vec2f> GenerateArrayOfVectors(int treshold, double beamGradStep, bool onlyUp = false) {
         vector<vec2f> temp;
         double normal = 90;
         int size;
@@ -227,7 +229,7 @@ public:
         if (onlyUp)
             size = 0;
         else
-            size = (int) ((normal - treshold) / step);
+            size = (int) ((normal - treshold) / beamGradStep);
 
         vector<vec2f> directions = vector<vec2f>(size + 1);
 
@@ -237,11 +239,11 @@ public:
 
         for (int i = 3; i < size + 1; i++) {
             if (i % 2 == 0) {
-                directions[i] = vec2f((float) cos((normal + (i - 2) * step) * degreeToRadians),
-                                      (float) sin((normal + (i - 2) * step) * degreeToRadians));
+                directions[i] = vec2f((float) cos((normal + (i - 2) * beamGradStep) * degreeToRadians),
+                                      (float) sin((normal + (i - 2) * beamGradStep) * degreeToRadians));
             } else {
-                directions[i] = vec2f((float) cos((normal - (i - 2) * step) * degreeToRadians),
-                                      (float) sin((normal - (i - 2) * step) * degreeToRadians));
+                directions[i] = vec2f((float) cos((normal - (i - 2) * beamGradStep) * degreeToRadians),
+                                      (float) sin((normal - (i - 2) * beamGradStep) * degreeToRadians));
             }
         }
         return directions;
@@ -252,7 +254,6 @@ public:
 //        cout << "threads: " << omp_get_max_threads() << endl;
 //        omp_set_nested(1);
 //        cout << "nested: " << omp_get_nested() << endl;
-        int step = 2;//расстояние между датчиками
         vector<int> coordinatesOfTransmitters = vector<int>(width / step);
         int cntCoord = coordinatesOfTransmitters.size();
         for (int i = 0; i < cntCoord; i++) {
@@ -315,6 +316,9 @@ public:
             for (int r = 1; r < size; r++) {
                 MPI_Send(buff, 1, MPI_INT, r, 1, MPI_COMM_WORLD);
             }
+
+            speedmap sm(figureCollection);
+            sm.draw().save(getOutPath() + "speedmap.bmp");
         } else {
             // ждем готовность папки для вывода
             MPI_Status sC;
@@ -323,9 +327,6 @@ public:
 
         bool is_parallel = size > 1;
 
-//        std::cout << "rank: " << rank << std::endl;
-//        return;
-        //не создавать разные варианты генерации с одним и тем же именем!
 //#pragma omp parallel for schedule(dynamic, 3) num_threads(hlf_thr)
         for (int i = rank; i < cntCoord; i += size) {
 //#pragma omp critical
@@ -351,7 +352,7 @@ public:
 //                remains = remains < 1 ? 1 : remains;
 //                int using_thr = max(hlf_thr / remains, 2);
 //                cout << "using threads: " << using_thr << endl;
-//#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
                 for (int j = 0; j < dSize; j++)
                 { //добавляем все направления расчёта луча из данной точки в очередь
 
@@ -402,7 +403,7 @@ public:
                 {
                     //записываем результаты данной фиксации
                     SaveData(
-                        getOutPath() + "L" + fileName + ".data" + to_string(i),
+                        getOutPath() + fileName + "_" + to_string(i) + ".data",
                         convolved, coordinatesOfTransmitters.size()
                     );
                 }
@@ -427,8 +428,8 @@ public:
                 cout << "taken signal from " << sR.MPI_SOURCE << " source" << endl;
                 cout << "waiting " << waiting << " more" << endl << endl;
             }
-            SaveInfo(getOutPath() + "L" + fileName + ".data", maxTime, coordinatesOfTransmitters.size(), step);
-            //SaveInfoInUniversalFormat("L3-0.5_2D-z80_150.data", maxTime, coordinatesOfTransmitters.Length, step);
+            SaveInfo(getOutPath() + fileName + ".info", maxTime, coordinatesOfTransmitters.size());
+            //SaveInfoInUniversalFormat("L3-0.5_2D-z80_150.data", maxTime, coordinatesOfTransmitters.Length);
             cout << "Finished" << endl;
             double mt = mtmr.elapsed() - mt1;
             std::cout << "total time " << mt << std::endl;
@@ -440,23 +441,33 @@ public:
 
 private:
 
-    static void SaveInfo(string path, int maxtime, int cnt, int step)//, int impulseLen)
+    static void SaveInfo(string path, int maxtime, int cnt)//, int impulseLen)
     {
         float dxmm = 1000 * dX;
         float dymm = 1000 * dY;
-        float df = (int) (1 / dt);
-        ofstream myFile(path + ".info", ios::out | ios::binary);
+        int df = (int) (1 / dt);
+        int envSpeed = figureCollection[0].speed;
+        double envAbs = figureCollection[0].absorption_c;
+        int zero = 0;
+        ofstream myFile(path, ios::out | ios::binary);
         myFile.write(reinterpret_cast<char *>(&cnt), sizeof(cnt));
         myFile.write(reinterpret_cast<char *>(&step), sizeof(step));
         myFile.write(reinterpret_cast<char *>(&maxtime), sizeof(maxtime));
         myFile.write(reinterpret_cast<char *>(&dxmm), sizeof(dxmm));
         myFile.write(reinterpret_cast<char *>(&dymm), sizeof(dymm));
         myFile.write(reinterpret_cast<char *>(&df), sizeof(df));
+        myFile.write(reinterpret_cast<char *>(&envSpeed), sizeof(envSpeed));
+        myFile.write(reinterpret_cast<char *>(&envAbs), sizeof(envAbs));
+        myFile.write(reinterpret_cast<char *>(&width), sizeof(width));
+        myFile.write(reinterpret_cast<char *>(&height), sizeof(height));
+        myFile.write(reinterpret_cast<char *>(&cnt), sizeof(cnt));
+        myFile.write(reinterpret_cast<char *>(&zero), sizeof(zero));
+        myFile.write(reinterpret_cast<char *>(&zero), sizeof(zero));
 
         cout << basePath(path + ".info") << " saved;" << endl << endl;
     }
 
-    /*static void SaveInfoInUniversalFormat(string path, int maxtime, int cnt, int step) {
+    /*static void SaveInfoInUniversalFormat(string path, int maxtime, int cnt) {
         using (BinaryWriter
         writer = new BinaryWriter(File.Open(path + ".info", FileMode.Create)))
         {

@@ -28,6 +28,7 @@ figure background;
 vector<figure> figureCollection;
 int width;
 int height;
+int step;
 int maxTime;
 
 double dX = 0.0005;
