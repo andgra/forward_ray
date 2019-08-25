@@ -11,6 +11,7 @@ endif()
 
 set(MPI_C_HEADER_DIR "C:\\Program Files (x86)\\Microsoft SDKs\\MPI\\Include")
 set(MPI_CXX_HEADER_DIR "C:\\Program Files (x86)\\Microsoft SDKs\\MPI\\Include")
+set(MPI_CXX_FLAGS "-static_mpi")
 include(FindMPI)
 FIND_PACKAGE(MPI REQUIRED)
 INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
@@ -40,7 +41,7 @@ set(FFTW_ROOT "D:\\projects\\clion\\fftw-3.3.5-dll32")
 find_package(FFTW REQUIRED)
 include_directories(${FFTW_INCLUDE_DIRS})
 link_directories (${FFTW_INCLUDE_DIRS})
-message(${FFTW_LIBRARIES})
+#message(${FFTW_LIBRARIES})
 
 
 #set(OpenCV_DIR "D:\\opencv\\build\\")
@@ -53,7 +54,7 @@ message(${FFTW_LIBRARIES})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -lpthread")
 
-add_executable(straight_ray main.cpp point.h vec2.h data.h edge.h beam.h intersection.h figure.h arrayOfReceiversTransmitters.h algo.h dft.h comp.cpp fft.cpp helper.h exo.h)
+add_executable(straight_ray main.cpp point.h vec2.h data.h edge.h beam.h intersection.h figure.h arrayOfReceiversTransmitters.h algo.h dft.h comp.cpp lib/fft.cpp helper.h exo.h speedmap.h lib/bitmap_image.hpp)
 
 target_link_libraries(straight_ray ${FFTW_LIBRARIES})
 
@@ -61,4 +62,13 @@ add_custom_command(TARGET straight_ray POST_BUILD        # Adds a post-build eve
         COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
         ${FFTW_LIBRARIES}      # <--this is in-file
         $<TARGET_FILE_DIR:straight_ray>)                 # <--this is out-file path
-target_link_libraries(straight_ray ${MPI_LIBRARY} "-Wl,--enable-stdcall-fixup")
+#message(${MPI_LIBRARY})
+#target_link_libraries(straight_ray ${MPI_LIBRARY} "-Wl,--enable-stdcall-fixup")
+#target_link_libraries(straight_ray ${MPI_LIBRARY} "-static_mpi")
+target_link_libraries(straight_ray ${MPI_LIBRARY})
+
+#msmpi.dll
+add_custom_command(TARGET straight_ray POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/lib/msmpi.dll      # <--this is in-file
+        $<TARGET_FILE_DIR:straight_ray>)                 # <--this is out-file path
